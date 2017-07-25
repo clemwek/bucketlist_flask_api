@@ -1,8 +1,7 @@
 from flask_api.flask_api import db
-from sqlalchemy.dialects.postgresql import JSON
 
 
-class Bucketlist(object):
+class Bucketlist(db.Model):
     __tablename__ = 'bucketlist'
 
     id = db.Column(db.Integer, primary_key=True)

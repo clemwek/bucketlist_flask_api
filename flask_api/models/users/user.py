@@ -1,5 +1,4 @@
 from flask_api.flask_api import db
-from sqlalchemy.dialects.postgresql import JSON
 
 
 class User(db.Model):
@@ -16,6 +15,9 @@ class User(db.Model):
         self.username = username
         self.email = email
         self.password = password
+
+    def save(self):
+        pass
 
     def __repr__(self):
         return '<User: {} with username {} and email {}>'.format(self.name, self.username, self.email)

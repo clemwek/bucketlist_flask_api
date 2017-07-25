@@ -1,8 +1,8 @@
 from flask_api.flask_api import db
-from sqlalchemy.dialects.postgresql import JSON
+# from sqlalchemy.dialects.postgresql import JSON
 
 
-class Item(object):
+class Item(db.Model):
     __tablename__ = 'items'
 
     id = db.Column(db.Integer, primary_key=True)
