@@ -1,5 +1,5 @@
 from flask_api.flask_api import db
-# from sqlalchemy.dialects.postgresql import JSON
+from flask_api.models.bucketlist.bucketlist import Bucketlist
 
 
 class Item(db.Model):
@@ -9,7 +9,8 @@ class Item(db.Model):
     name = db.Column(db.String())
     description = db.Column(db.String())
     date = db.Column(db.String())
-    bucket_id = db.Column(db.String())
+    bucket_id = db.Column(db.Integer(), db.ForeignKey('bucket.id'))
+
 
     def __init__(self, bucket_id, name, desciption, date):
         self.bucket_id = bucket_id
