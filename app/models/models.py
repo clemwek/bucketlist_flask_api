@@ -12,8 +12,8 @@ class User(db.Model):
     password = db.Column(db.String())
     buckets = db.relationship('Bucketlist', backref='user', lazy='dynamic')
 
-    def __init__(self, name, username, email, password):
-        """initialize with name, username, email, password."""
+    def __init__(self, username, email, password):
+        """initialize with username, email, password."""
         self.username = username
         self.email = email
         self.password = password
