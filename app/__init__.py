@@ -1,5 +1,5 @@
 from flask_api import FlaskAPI
-from flask import request, jsonify, abort
+from flask import request, jsonify, json, abort
 from flask_sqlalchemy import SQLAlchemy
 
 # local import
@@ -40,10 +40,14 @@ def create_app(config_name):
         username = request.data.get('username')
         password = request.data.get('password')
         found_user = User.query.filter_by(username=username).first()
-        print(found_user)
         if found_user and found_user.password == password:
-            response = jsonify({found_user})
-            response.status_code = 201
+            response = jsonify({
+                "id": found_user.id,
+                "username": found_user.username,
+                "email": found_user.email,
+                "password": found_user.password
+            })
+            response.status_code = 200
             return response
         return abort(404)
 
