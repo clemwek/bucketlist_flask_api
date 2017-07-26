@@ -1,26 +1,6 @@
 from app import db
 
 
-# class Base(db.Model):
-#     def __init__(self, name):
-#         """initialize with name."""
-#         self.name = name
-
-#     def save(self):
-#         db.session.add(self)
-#         db.session.commit()
-
-#     @staticmethod
-#     def get_all():
-#         return Bucketlist.query.all()
-
-#     def delete(self):
-#         db.session.delete(self)
-#         db.session.commit()
-
-#     def __repr__(self):
-#         pass
-
 class User(db.Model):
     """This class represents the users table."""
 
@@ -63,7 +43,7 @@ class Bucketlist(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255))
-    user_id = db.Column(db.Integer(), db.ForeignKey('user.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     items = db.relationship('Item', backref='bucket', lazy='dynamic', cascade=('all', 'delete-orphan'))
 
 
@@ -76,7 +56,7 @@ class Bucketlist(db.Model):
         db.session.add(self)
         db.session.commit()
 
-    # @staticmethod
+    @staticmethod
     def get_all():
         return Bucketlist.query.all()
 
@@ -97,7 +77,7 @@ class Item(db.Model):
     name = db.Column(db.String())
     description = db.Column(db.String())
     date = db.Column(db.String())
-    bucket_id = db.Column(db.Integer(), db.ForeignKey('bucket.id'))
+    bucket_id = db.Column(db.Integer, db.ForeignKey('bucketlists.id'))
 
     def __init__(self, name, description, date, bucket_id):
         """initialize with name."""
