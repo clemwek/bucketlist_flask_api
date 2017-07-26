@@ -76,7 +76,7 @@ class Bucketlist(db.Model):
         db.session.add(self)
         db.session.commit()
 
-    @staticmethod
+    # @staticmethod
     def get_all():
         return Bucketlist.query.all()
 

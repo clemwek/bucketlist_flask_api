@@ -1,9 +1,11 @@
+import os
+
 class Config(object):
     DEBUG = False
     TESTING = False
     CSRF_ENABLED = True
-    SECRET_KEY = 'thisissecret'
-    SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:newpassword@localhost/flask_api'
+    SECRET_KEY = os.getenv('SECRET')
+    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
 
 
 class ProductionConfig(Config):
