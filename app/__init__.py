@@ -52,43 +52,52 @@ def create_app(config_name):
         return abort(404)
 
 
-    # @app.route('/bucketlists', methods=['GET', 'POST'])
-    # def bucketlist():
-    #     if request.method == 'POST':
-    #         name = str(request.data.get('name', ''))
-    #         user_id = 'test' #To Do
-    #         new_bucketlist = Bucketlist(name, user_id)
-    #         new_bucketlist.save()
-    #         response = jsonify({
-    #             'id': new_bucketlist.id,
-    #             'name': new_bucketlist.name
-    #         })
-    #         response.status_code = 201
-    #         return response
-    #     bucketlist = Bucketlist.query.filter_by(user_id=user_id).all()
-    #     response = jsonify({ bucketlist })
-    #     response.status_code = 200
-    #     return response
+    @app.route('/auth/logout', methods=['POST'])
+    def logout():
+        pass
 
+    @app.route('/auth/reset-password', methods=['POST'])
+    def reset_password():
+        username = request.data.get('username')
+        new_password = request.data.get('password')
+        found_user = User.query.filter_by(username=username).first()
+        found_user.password = new_password
+        found_user.save()
+        response = jsonify({
+            "id": found_user.id,
+            "username": found_user.username,
+            "email": found_user.email,
+            "password": found_user.password
+        })
+        response.status_code = 200
+        return response
 
-    # @app.route('/bucketlists', methods=['GET', 'POST'])
-    # def bucketlis():
-    #     if request.method == 'POST':
-    #         name = str(request.data.get('name', ''))
-    #         user_id = 'test' #To Do
-    #         new_bucketlist = Bucketlist(name, user_id)
-    #         new_bucketlist.save()
-    #         response = jsonify({
-    #             'id': new_bucketlist.id,
-    #             'name': new_bucketlist.name
-    #         })
-    #         response.status_code = 201
-    #         return response
-    #     bucketlist = Bucketlist.query.filter_by(user_id=user_id).all()
-    #     response = jsonify({ bucketlist })
-    #     response.status_code = 200
-    #     return response
-
+    @app.route('/bucketlists', methods=['GET', 'POST'])
+    def bucketlist():
+        if request.method == 'POST':
+            name = request.data.get('name')
+            user_id = 5 #To Do
+            new_bucketlist = Bucketlist(name, user_id)
+            new_bucketlist.save()
+            response = jsonify({
+                'id': new_bucketlist.id,
+                'name': new_bucketlist.name
+            })
+            response.status_code = 201
+            return response
+        user_id = 5
+        bucketlist = Bucketlist.query.filter_by(user_id=user_id).all()
+        bucketlist_dict = {"bucketlist": []}
+        for bucket in bucketlist:
+            dict_obj = {
+                "id": bucket.id,
+                "name": bucket.name
+            }
+            bucketlist_dict["bucketlist"].append(dict_obj)
+        print(bucketlist_dict)
+        response = jsonify(bucketlist_dict)
+        response.status_code = 200
+        return response
 
     # @app.route('/bucketlists/<int:id>', methods=['GET', 'PUT', 'DELETE'])
     # def bucketlist_manipulation(id, **kwargs):
