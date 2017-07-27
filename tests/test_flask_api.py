@@ -2,6 +2,31 @@ import unittest
 import os
 import json
 from app import create_app, db
+from app.models.models import User
+
+app = create_app('testing')
+
+
+def test_app_is_development(self):
+    self.assertFalse(app.config['SECRET_KEY'] is 'my_precious')
+    self.assertTrue(app.config['DEBUG'] is True)
+    # self.assertFalse(current_app is None)
+    self.assertTrue(
+        app.config['SQLALCHEMY_DATABASE_URI'] == 'postgresql://postgres:@localhost/flask_jwt_auth'
+    )
+
+# Test for config
+class TestTestingConfig(unittest.TestCase):
+    def create_app(self):
+        app.config.from_object('project.server.config.TestingConfig')
+        return app
+
+    def test_app_is_testing(self):
+        self.assertFalse(app.config['SECRET_KEY'] is 'my_precious')
+        self.assertTrue(app.config['DEBUG'])
+        self.assertTrue(
+            app.config['SQLALCHEMY_DATABASE_URI'] == 'postgresql://postgres:@localhost/flask_jwt_auth_test'
+        )
 
 
 class UserTestCase(unittest.TestCase):
@@ -11,15 +36,27 @@ class UserTestCase(unittest.TestCase):
         """Define test variables and initialize app."""
         self.app = create_app(config_name="testing")
         self.client = self.app.test_client
-        self.user = {'name': 'Test text'}
+        self.user = {'username': 'Test text', 'email': 'Test@text.com', 'password': 'Testtext'}
 
         # binds the app to the current context
         with self.app.app_context():
             db.create_all()
 
+    def test_encode_auth_token(self):
+        user = User(
+            username='testtest',
+            email='test@test.com',
+            password='test'
+        )
+        user.save()
+        auth_token = user.encode_auth_token(user.id)
+        self.assertTrue(isinstance(auth_token, bytes))
+
+
     def test_user_registration(self):
         """Test API can regisster a user (POST request)"""
         res = self.client().post('/auth/register/', data=self.user)
+        print(self.user)
         self.assertEqual(res.status_code, 201)
         self.assertIn('Test text', str(res.data))
 
@@ -57,7 +94,7 @@ class BucketlistTestCase(unittest.TestCase):
         """Define test variables and initialize app."""
         self.app = create_app(config_name="testing")
         self.client = self.app.test_client
-        self.bucketlist = {'name': 'This is random text'}
+        self.user = {'name': 'Test text'}
 
         # binds the app to the current context
         with self.app.app_context():
