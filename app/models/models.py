@@ -1,5 +1,7 @@
+import datetime
 import jwt
 import datetime
+from passlib.apps import custom_app_context as pwd_context
 
 from app import db
 
@@ -12,7 +14,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(), unique=True)
     email = db.Column(db.String(), unique=True)
-    password = db.Column(db.String())
+    password_hash = db.Column(db.String())
     buckets = db.relationship('Bucketlist', backref='user', lazy='dynamic')
 
     def __init__(self, username, email, password):
@@ -20,6 +22,12 @@ class User(db.Model):
         self.username = username
         self.email = email
         self.password = password
+
+    def hash_password(self, password):
+        self.password_hash = pwd_context.encrypt(password)
+
+    def verify_password(self, password):
+        return pwd_context.verify(password, self.password_hash)
 
     def save(self):
         db.session.add(self)
@@ -33,40 +41,39 @@ class User(db.Model):
         db.session.delete(self)
         db.session.commit()
 
-    def encode_auth_token(self, user_id):
-        """
-        Generates the Auth Token
-        :return: string
-        """
-        try:
-            payload = {
-                'exp': datetime.datetime.utcnow() + datetime.timedelta(days=0, seconds=5),
-                'iat': datetime.datetime.utcnow(),
-                'sub': user_id
-            }
-            return jwt.encode(
-                payload,
-                app.config.get('SECRET'),
-                algorithm='HS256'
-            )
-        except Exception as e:
-            return e
+    # def encode_auth_token(self, user_id):
+    #     """
+    #     Generates the Auth Token
+    #     :return: string
+    #     """
+    #     try:
+    #         payload = {
+    #             'exp': datetime.datetime.utcnow() + datetime.timedelta(days=0, seconds=5),
+    #             'iat': datetime.datetime.utcnow(),
+    #             'sub': user_id
+    #         }
+    #         return jwt.encode(
+    #             payload,
+    #             app.config.get('SECRET'),
+    #             algorithm='HS256'
+    #         )
+    #     except Exception as e:
+    #         return e
 
-
-    @staticmethod
-    def decode_auth_token(auth_token):
-        """
-        Decodes the auth token
-        :param auth_token:
-        :return: integer|string
-        """
-        try:
-            payload = jwt.decode(auth_token, app.config.get('SECRET_KEY'))
-            return payload['sub']
-        except jwt.ExpiredSignatureError:
-            return 'Signature expired. Please log in again.'
-        except jwt.InvalidTokenError:
-            return 'Invalid token. Please log in again.'
+    # @staticmethod
+    # def decode_auth_token(auth_token):
+    #     """
+    #     Decodes the auth token
+    #     :param auth_token:
+    #     :return: integer|string
+    #     """
+    #     try:
+    #         payload = jwt.decode(auth_token, app.config.get('SECRET_KEY'))
+    #         return payload['sub']
+    #     except jwt.ExpiredSignatureError:
+    #         return 'Signature expired. Please log in again.'
+    #     except jwt.InvalidTokenError:
+    #         return 'Invalid token. Please log in again.'
 
 
 
