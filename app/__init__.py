@@ -2,14 +2,13 @@ from flask_api import FlaskAPI
 from flask import request, jsonify, json, abort
 from flask_sqlalchemy import SQLAlchemy
 
+
 # local import
 from instance.config import app_config
 
 
 # initialize sql-alchemy
 db = SQLAlchemy()
-
-from app.models.models import User, Bucketlist, Item
 
 def create_app(config_name):
     app = FlaskAPI(__name__, instance_relative_config=True)
@@ -19,18 +18,29 @@ def create_app(config_name):
     db.init_app(app)
 
 
+    from app.models.models import User, Bucketlist, Item
+
+
     @app.route('/auth/register', methods=['POST'])
     def register():
         username = request.data.get('username')
         email = request.data.get('email')
         password = request.data.get('password')
-        new_user = User(username, email, password)
+        if username is None or password is None or email is None:
+            res = jsonify({'message': 'some arguments are missing.'})
+            res.status_code = 400
+            return res
+        if User.query.filter_by(username=username).first() is not None:
+            res = jsonify({'message': 'Username already used.'})
+            res.status_code = 400
+            return res
+        new_user = User(username, email)
+        new_user.hash_password(password)
         new_user.save()
         response = jsonify({
             'id': new_user.id,
             'username': new_user.username,
-            'email': new_user.email,
-            'password': new_user.password
+            'email': new_user.email
         })
         response.status_code = 201
         return response
@@ -39,15 +49,22 @@ def create_app(config_name):
     def login():
         username = request.data.get('username')
         password = request.data.get('password')
+        if username is None or password is None:
+            res = jsonify({'message': 'some arguments are missing.'})
+            res.status_code = 400
+            return res
+        if User.query.filter_by(username = username).first() is None:
+            res = jsonify({'message': 'Username does not exist.'})
+            res.status_code = 400
+            return res
         found_user = User.query.filter_by(username=username).first()
-        if found_user and found_user.password == password:
+        if found_user and found_user.verify_password(password):
             response = jsonify({
                 "id": found_user.id,
                 "username": found_user.username,
-                "email": found_user.email,
-                "password": found_user.password
+                "email": found_user.email
             })
-            response.status_code = 200
+            response.status_code = 202
             return response
         return abort(404)
 
@@ -61,13 +78,12 @@ def create_app(config_name):
         username = request.data.get('username')
         new_password = request.data.get('password')
         found_user = User.query.filter_by(username=username).first()
-        found_user.password = new_password
+        found_user.hash_password(new_password)
         found_user.save()
         response = jsonify({
             "id": found_user.id,
             "username": found_user.username,
-            "email": found_user.email,
-            "password": found_user.password
+            "email": found_user.email
         })
         response.status_code = 200
         return response
