@@ -126,8 +126,8 @@ def create_app(config_name):
         if request.method == 'DELETE':
             bucketlist.delete()
             return {
-            "message": "bucketlist {} deleted successfully".format(bucketlist.id) 
-         }, 200
+                "message": "bucketlist {} deleted successfully".format(bucketlist.id)
+            }, 200
 
         elif request.method == 'PUT':
             # PUT
@@ -148,5 +148,49 @@ def create_app(config_name):
             })
             response.status_code = 200
             return response
+    
+    @app.route('/bucketlists/<id>/items', methods=['POST'])
+    def add_items(id):
+        item_name = request.data.get('name')
+        item_description = request.data.get('description')
+        item_date = request.data.get('date')
+        item_bucket_id = request.data.get(id)
 
+        new_item = Item(item_name, item_description, item_date, item_bucket_id)
+        new_item.save()
+        response = jsonify({
+            'id': new_item.id,
+            'item_name': new_item.name,
+            'item_description': new_item.description,
+            'item_date': new_item.date
+        })
+        response.status_code = 201
+        return response
+
+    @app.route('/bucketlists/<id>/items/<item_id>', methods=['PUT', 'DELETE'])
+    def items_manipulations(id, item_id):
+
+        found_item = Item.query.filter_by(id=item_id, bucket_id=id).first()
+        if not found_item:
+            return jsonify({'message': 'Item not found'})
+
+        if request.method == 'PUT':
+            found_item.name = request.data.get('name')
+            found_item.description = request.data.get('name')
+            found_item.date = request.data.get('name')
+
+            found_item.save()
+            response = jsonify({
+                'id': found_item.id,
+                'item_name': found_item.name,
+                'item_description': found_item.description,
+                'item_date': found_item.date
+            })
+            response.status_code = 200
+            return response
+        elif request.method == 'DELETE':
+            found_item.delete()
+            return jsonify({
+                'message': 'Item was deleted successful'
+            })
     return app
