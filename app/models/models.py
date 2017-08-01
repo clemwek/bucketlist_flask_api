@@ -1,8 +1,8 @@
 import os
 import datetime
-import bcrypt
 import jwt
-from passlib.apps import custom_app_context as pwd_context
+from flask import jsonify
+from passlib.hash import pbkdf2_sha512
 
 from app import db
 
@@ -15,23 +15,32 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(), unique=True)
     email = db.Column(db.String(), unique=True)
-    password_hash = db.Column(db.String())
+    password_hash = db.Column(db.String(250))
     buckets = db.relationship('Bucketlist', backref='user', lazy='dynamic')
 
     def __init__(self, username, email):
         """initialize with username, email, password."""
         self.username = username
         self.email = email
+        self.password_hash = ''
 
-    def hash_password(password):
-        self.password_hash = bcrypt.hashpw(password,  bcrypt.gensalt())
+    def hash_password(self, password):
+        self.password_hash = pbkdf2_sha512.encrypt(password)
 
-    def verify_password(password, password_hash):
-        return  bcrypt.checkpw(password, password_hash)
+    @staticmethod
+    def check_hashed_password(password, hashed_password):
+        return pbkdf2_sha512.verify(password, hashed_password)
 
     def save(self):
         db.session.add(self)
         db.session.commit()
+
+    def gen_token(self):
+        token = jwt.encode({
+            'id': self.id,
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=30)
+        }, os.getenv('SECRET'))
+        return jsonify({'token': token.decode('UTF-8')})
 
     @staticmethod
     def get_all():
