@@ -12,4 +12,5 @@ script:
 after_success:
   coveralls
 script:
+- nosetests tests/
 - nosetests  --with-coverage --cover-package=app
