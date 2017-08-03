@@ -2,6 +2,7 @@ language: python
 dist: Trusty
 python:
   - "3.6"
+  - "3.5"
 install:
   - "pip install -r requirements.txt"
   - "pip install coveralls"
@@ -11,4 +12,4 @@ script:
 after_success:
   coveralls
 script:
-- nosetests  --with-coverage --cover-package=flask_api
+- nosetests  --with-coverage --cover-package=app
