@@ -1,0 +1,15 @@
+language: python
+dist: Trusty
+python:
+  - "3.6"
+  - "3.5"
+install:
+  - "pip install -r requirements.txt"
+  - "pip install coveralls"
+# command to run tests
+script:
+#  coverage run --source=functionalities -m py.test
+after_success:
+  coveralls
+script:
+- nosetests  --with-coverage --cover-package=app
