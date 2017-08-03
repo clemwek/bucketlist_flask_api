@@ -28,8 +28,8 @@ def create_app(config_name):
         def decorated(*args, **kwargs):
             token = None
 
-            if 'auth-token' in request.headers:
-                token = request.headers['auth-token']
+            if 'auth-token' in request.data:
+                token = request.data['auth-token']
 
             if not token:
                 return jsonify({'message': 'token is missing!'}), 401
@@ -47,6 +47,7 @@ def create_app(config_name):
 
     @app.route('/auth/register', methods=['POST'])
     def register():
+        """ Register a new user """
         username = str(request.data.get('username', ''))
         email = str(request.data.get('email', ''))
         password = str(request.data.get('password', ''))
@@ -65,30 +66,36 @@ def create_app(config_name):
 
     @app.route('/auth/login', methods=['POST'])
     def login():
+        """ Login a user """
         username = str(request.data.get('username', ''))
         password = str(request.data.get('password', ''))
         print(username, password)
         if not username or not password:
-            return make_response('could not veryfy: No data was send', 401,{'WWW-Authenticate':'Basic realm="login required!"'})
+            return make_response('could not veryfy: No data was send', 401,
+                                 {'WWW-Authenticate':'Basic realm="login required!"'})
 
         found_user = User.query.filter_by(username=username).first()
         if not found_user:
-            return make_response('could not veryfy: No user', 401,{'WWW-Authenticate':'Basic realm="login required!"'})
+            return make_response('could not veryfy: No user', 401,
+                                 {'WWW-Authenticate':'Basic realm="login required!"'})
 
         if found_user.check_hashed_password(password, found_user.password_hash):
             res = found_user.gen_token()
             res.status_code = 202
             return res
-        return make_response('could not veryfy: wrong password', 401,{'WWW-Authenticate':'Basic realm="login required!"'})
+        return make_response('could not veryfy: wrong password', 401,
+                             {'WWW-Authenticate':'Basic realm="login required!"'})
 
 
     @app.route('/auth/logout', methods=['POST'])
     def logout():
+        """ Log out a user """
         pass
 
 
     @app.route('/auth/reset-password', methods=['POST'])
     def reset_password():
+        """ Resets a users password """
         username = request.data.get('username')
         new_password = request.data.get('password')
         found_user = User.query.filter_by(username=username).first()
@@ -106,6 +113,7 @@ def create_app(config_name):
     @app.route('/bucketlists', methods=['GET', 'POST'])
     @token_required
     def bucketlist(current_user):
+        """ Adds bucketlist when post a shows when get """
         if request.method == 'POST':
             name = request.data.get('name')
             user_id = current_user.id
@@ -267,18 +275,20 @@ def create_app(config_name):
         response.status_code = 200
         return response
 
-    @app.route('/bucketlists/<id>/items/<item_id>', methods=['PUT', 'DELETE'])
+    @app.route('/bucketlists/<id>/items/<item_id>', methods=['GET', 'PUT', 'DELETE'])
     @token_required
     def items_manipulations(current_user, id, item_id):
 
         found_item = Item.query.filter_by(id=item_id, bucket_id=id).first()
         if not found_item:
-            return jsonify({'message': 'Item not found'})
+            res = jsonify({'message': 'Item not found'})
+            res.status_code = 404
+            return res
 
         if request.method == 'PUT':
-            found_item.name = request.data.get('name')
-            found_item.description = request.data.get('name')
-            found_item.date = request.data.get('name')
+            found_item.name = request.data.get('item_name')
+            found_item.description = request.data.get('description')
+            found_item.date = request.data.get('date')
 
             found_item.save()
             response = jsonify({
@@ -289,6 +299,17 @@ def create_app(config_name):
             })
             response.status_code = 200
             return response
+        elif request.method == 'GET':
+            # GET
+            response = jsonify({
+                'id': found_item.id,
+                'name': found_item.name,
+                'description': found_item.description,
+                'date': found_item.date
+            })
+            response.status_code = 200
+            return response
+
         elif request.method == 'DELETE':
             found_item.delete()
             return jsonify({
