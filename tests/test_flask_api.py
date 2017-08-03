@@ -4,8 +4,6 @@ import json
 from app import create_app, db
 from app.models.models import User
 
-app = create_app('testing')
-
 
 class UserTestCase(unittest.TestCase):
     """This class represents the user test case"""
@@ -15,36 +13,39 @@ class UserTestCase(unittest.TestCase):
         self.app = create_app(config_name="testing")
         self.client = self.app.test_client
         self.user = {'username': 'Test text', 'email': 'Test@text.com', 'password': 'Testtext'}
-        self.user1 = {'username': 'Test 1 text', 'email': 'Test1@text.com', 'password': 'Testtext1'}
-        self.password_reset = {'username': 'Test 1 text', 'password': 'NewPassword'}
 
         # binds the app to the current context
         with self.app.app_context():
             db.create_all()
-
-    # def test_encode_auth_token(self):
-    #     user = User(
-    #         username='testtest',
-    #         email='test@test.com',
-    #         password='test'
-    #     )
-    #     user.save()
-    #     auth_token = user.encode_auth_token(user.id)
-    #     self.assertTrue(isinstance(auth_token, bytes))
-
+            # test_user = User('test', 'test@mail.com')
+            # test_user.hash_password('test')
+            # db.session.add(test_user)
+            # db.session.commit()
 
     def test_user_registration(self):
         """Test API can regisster a user (POST request)"""
         res = self.client().post('/auth/register', data=self.user)
         self.assertEqual(res.status_code, 201)
         self.assertIn('Test text', str(res.data))
-        
+
     def test_user_login(self):
         """Test API can login a user (POST request)"""
-        self.client().post('/auth/register', data=self.user1)
-        res = self.client().post('/auth/login', data=self.user1)
+        self.client().post('/auth/register', data=self.user)
+        res = self.client().post('/auth/login', data=self.user)
         self.assertEqual(res.status_code, 202)
-        self.assertIn('Test 1 text', str(res.data))
+        self.assertIn('token', str(res.data))
+
+        # Test for wrong password
+        self.user['password'] = 'wrong'
+        res = self.client().post('/auth/login', data=self.user)
+        self.assertEqual(res.status_code, 401)
+        self.assertIn('could not veryfy', str(res.data))
+
+        # Test for non existing user
+        self.user['username'] = 'wrong'
+        res = self.client().post('/auth/login', data=self.user)
+        self.assertEqual(res.status_code, 401)
+        self.assertIn('could not veryfy', str(res.data))
 
     def test_user_logout(self):
         """Test API can logout a user (POST request)"""
@@ -52,11 +53,14 @@ class UserTestCase(unittest.TestCase):
 
     def test_user_password_reset(self):
         """Test API can reset password for a user (POST request)"""
-        self.client().post('/auth/register', data=self.user1)
-        res = self.client().post('/auth/reset-password', data=self.password_reset)
+        self.client().post('/auth/register', data=self.user)
+        self.user['password'] = 'test2'
+        res = self.client().post('/auth/reset-password', data=self.user)
         self.assertEqual(res.status_code, 200)
-        self.assertIn('NewPassword', str(res.data))
 
+        res = self.client().post('/auth/login', data=self.user)
+        self.assertEqual(res.status_code, 202)
+        self.assertIn('token', str(res.data))
 
     def tearDown(self):
         """teardown all initialized variables."""

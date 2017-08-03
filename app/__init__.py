@@ -47,29 +47,39 @@ def create_app(config_name):
 
     @app.route('/auth/register', methods=['POST'])
     def register():
-        data = request.get_json()
-
-        new_user = User(username=data['username'], email=data['email'])
-        new_user.hash_password(data['password'])
+        username = str(request.data.get('username', ''))
+        email = str(request.data.get('email', ''))
+        password = str(request.data.get('password', ''))
+        new_user = User(username, email)
+        new_user.hash_password(password)
         new_user.save()
 
-        return jsonify({'message': 'user created!'})
+        res = jsonify({
+            'message': 'user created!',
+            'username': new_user.username,
+            'email': new_user.email
+        })
+        res.status_code = 201
+        return res
 
 
     @app.route('/auth/login', methods=['POST'])
     def login():
-        auth = request.authorization
+        username = str(request.data.get('username', ''))
+        password = str(request.data.get('password', ''))
+        print(username, password)
+        if not username or not password:
+            return make_response('could not veryfy: No data was send', 401,{'WWW-Authenticate':'Basic realm="login required!"'})
 
-        if not auth or not auth.username or not auth.password:
-            return make_response('could not veryfy', 401,{'WWW-Authenticate':'Basic realm="login required!"'})
-
-        found_user = User.query.filter_by(username=auth.username).first()
+        found_user = User.query.filter_by(username=username).first()
         if not found_user:
-            return make_response('could not veryfy', 401,{'WWW-Authenticate':'Basic realm="login required!"'})
+            return make_response('could not veryfy: No user', 401,{'WWW-Authenticate':'Basic realm="login required!"'})
 
-        if found_user.check_hashed_password(auth.password, found_user.password_hash):
-            return found_user.gen_token()
-        return make_response('could not veryfy', 401,{'WWW-Authenticate':'Basic realm="login required!"'})
+        if found_user.check_hashed_password(password, found_user.password_hash):
+            res = found_user.gen_token()
+            res.status_code = 202
+            return res
+        return make_response('could not veryfy: wrong password', 401,{'WWW-Authenticate':'Basic realm="login required!"'})
 
 
     @app.route('/auth/logout', methods=['POST'])
@@ -125,9 +135,19 @@ def create_app(config_name):
             response =jsonify({'message': 'Bucket not found in the list'})
             response.status_code = 404
             return response
-        if limit = request.args.get('limit'):
-            pass
 
+        if limit:
+            bucketlist = Bucketlist.query.filter_by(user_id=current_user.id).limit(int(limit))
+            bucketlist_dict = {"bucketlist": []}
+            for bucket in bucketlist:
+                dict_obj = {
+                    "id": bucket.id,
+                    "name": bucket.name
+                }
+                bucketlist_dict["bucketlist"].append(dict_obj)
+            response = jsonify(bucketlist_dict)
+            response.status_code = 200
+            return response
 
         user_id = current_user.id
         bucketlist = Bucketlist.query.filter_by(user_id=user_id).all()
@@ -196,6 +216,43 @@ def create_app(config_name):
             })
             response.status_code = 201
             return response
+        search = request.args.get('q')
+        limit = request.args.get('limit')
+
+        if search:
+            items = Item.query.filter_by(bucket_id=id, name=search).all()
+            if items:
+                items_dict = {"items": []}
+                for item in items:
+                    dict_obj = {
+                        "id": item.id,
+                        "name": item.name,
+                        "description": item.description,
+                        "date": item.date
+                    }
+                    items_dict["items"].append(dict_obj)
+                response = jsonify(items_dict)
+                response.status_code = 200
+                return response
+            response =jsonify({'message': 'Items not found in the list'})
+            response.status_code = 404
+            return response
+
+        if limit:
+            items = Item.query.filter_by(bucket_id=id).limit(int(limit))
+            items_dict = {"items": []}
+            for item in items:
+                dict_obj = {
+                    "id": item.id,
+                    "name": item.name,
+                    "description": item.description,
+                    "date": item.date
+                }
+                items_dict["items"].append(dict_obj)
+            response = jsonify(items_dict)
+            response.status_code = 200
+            return response
+
         items = Item.query.filter_by(bucket_id=id).all()
         item_dict = {"items": []}
         for item in items:
