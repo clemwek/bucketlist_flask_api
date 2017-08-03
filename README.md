@@ -1,3 +1,7 @@
+[![Build Status](https://travis-ci.org/clemwek/bucketlist_flask_api.svg?branch=master)](https://travis-ci.org/clemwek/bucketlist_flask_api)
+
+[![Build Status](https://travis-ci.org/clemwek/bucketlist_flask_api.svg?branch=master)](https://travis-ci.org/clemwek/bucketlist_flask_api)
+
 # Bucketlist Flask API
 
 What would you like to do in the next few years? Climb a mountain? Learn to ride a bike? :) 
