@@ -1,5 +1,8 @@
-import jwt
+import os
 import datetime
+import jwt
+from flask import jsonify
+from passlib.hash import pbkdf2_sha512
 
 from app import db
 
@@ -12,18 +15,32 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(), unique=True)
     email = db.Column(db.String(), unique=True)
-    password = db.Column(db.String())
+    password_hash = db.Column(db.String(250))
     buckets = db.relationship('Bucketlist', backref='user', lazy='dynamic')
 
-    def __init__(self, username, email, password):
+    def __init__(self, username, email):
         """initialize with username, email, password."""
         self.username = username
         self.email = email
-        self.password = password
+        self.password_hash = ''
+
+    def hash_password(self, password):
+        self.password_hash = pbkdf2_sha512.encrypt(password)
+
+    @staticmethod
+    def check_hashed_password(password, hashed_password):
+        return pbkdf2_sha512.verify(password, hashed_password)
 
     def save(self):
         db.session.add(self)
         db.session.commit()
+
+    def gen_token(self):
+        token = jwt.encode({
+            'id': self.id,
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=30)
+        }, os.getenv('SECRET'))
+        return jsonify({'token': token.decode('UTF-8')})
 
     @staticmethod
     def get_all():
@@ -32,43 +49,6 @@ class User(db.Model):
     def delete(self):
         db.session.delete(self)
         db.session.commit()
-
-    def encode_auth_token(self, user_id):
-        """
-        Generates the Auth Token
-        :return: string
-        """
-        try:
-            payload = {
-                'exp': datetime.datetime.utcnow() + datetime.timedelta(days=0, seconds=5),
-                'iat': datetime.datetime.utcnow(),
-                'sub': user_id
-            }
-            return jwt.encode(
-                payload,
-                app.config.get('SECRET'),
-                algorithm='HS256'
-            )
-        except Exception as e:
-            return e
-
-
-    @staticmethod
-    def decode_auth_token(auth_token):
-        """
-        Decodes the auth token
-        :param auth_token:
-        :return: integer|string
-        """
-        try:
-            payload = jwt.decode(auth_token, app.config.get('SECRET_KEY'))
-            return payload['sub']
-        except jwt.ExpiredSignatureError:
-            return 'Signature expired. Please log in again.'
-        except jwt.InvalidTokenError:
-            return 'Invalid token. Please log in again.'
-
-
 
     def __repr__(self):
         return "<User: {}, with email: {}.>".format(self.username, self.email)
@@ -82,14 +62,14 @@ class Bucketlist(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255))
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    items = db.relationship('Item', backref='bucket', lazy='dynamic', cascade=('all', 'delete-orphan'))
-
+    items = db.relationship('Item', backref='bucket', lazy='dynamic',
+                            cascade=('all', 'delete-orphan'))
 
     def __init__(self, name, user_id):
         """initialize with name."""
         self.name = name
         self.user_id = user_id
-    
+
     def save(self):
         db.session.add(self)
         db.session.commit()
@@ -111,7 +91,6 @@ class Item(db.Model):
     __tablename__ = 'items'
 
     id = db.Column(db.Integer, primary_key=True)
-    bucket_id = db.Column(db.Integer(), db.ForeignKey('bucket.id'))
     name = db.Column(db.String())
     description = db.Column(db.String())
     date = db.Column(db.String())
@@ -138,73 +117,3 @@ class Item(db.Model):
 
     def __repr__(self):
         return "<Items: {}>".format(self.name)
-
-
-
-
-
-# from flask_api import db
-
-
-# class User(db.Model):
-#     __tablename__ = 'users'
-
-#     id = db.Column(db.Integer, primary_key=True)
-#     name = db.Column(db.String())
-#     username = db.Column(db.String(), unique=True)
-#     email = db.Column(db.String(), unique=True)
-#     password = db.Column(db.String())
-#     buckets = db.relationship('Bucketlist', backref='user', lazy='dynamic')
-
-#     def __init__(self, name, username, email, password):
-#         self.name = name
-#         self.username = username
-#         self.email = email
-#         self.password = password
-
-#     def save(self):
-#         db.session.add(self)
-#         db.session.commit()
-
-#     def delete(self):
-#         db.session.delete(self)
-#         db.session.commit()
-
-
-#     def __repr__(self):
-#         return '<User: {} with username {} and email {}>'.format(self.name, self.username, self.email)
-
-
-# class Bucketlist(db.Model):
-#     __tablename__ = 'bucketlist'
-
-#     id = db.Column(db.Integer, primary_key=True)
-#     name = db.Column(db.String())
-#     user_id = db.Column(db.Integer(), db.ForeignKey('user.id'))
-#     items = db.relationship('Item', backref='bucket', lazy='dynamic', cascade=('all', 'delete-orphan'))
-
-#     def __init__(self, name):
-#         self.name = name
-
-#     def __repr__(self):
-#         return '<bucketlist {}.>'.format(self.name)
-
-
-# class Item(db.Model):
-#     __tablename__ = 'items'
-
-#     id = db.Column(db.Integer, primary_key=True)
-#     name = db.Column(db.String())
-#     description = db.Column(db.String())
-#     date = db.Column(db.String())
-#     bucket_id = db.Column(db.Integer(), db.ForeignKey('bucket.id'))
-
-
-#     def __init__(self, bucket_id, name, desciption, date):
-#         self.bucket_id = bucket_id
-#         self.name = name
-#         self.desciption = desciption
-#         self.date = date
-
-#     def __repr__(self):
-#         return '<Item {}, to be completed on {}.>'.format(self.name, self.date)
