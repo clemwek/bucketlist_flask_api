@@ -7,8 +7,10 @@ install:
   - "pip install -r requirements.txt"
   - "pip install coveralls"
 # command to run tests
-script:
-#  coverage run --source=functionalities -m py.test
+services:
+  - postgresql
+before_script:
+  - psql -c 'create database travis_ci_test;' -U postgres
 after_success:
   coveralls
 script:
