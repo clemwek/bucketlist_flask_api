@@ -40,6 +40,7 @@ class User(db.Model):
             'id': self.id,
             'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=30)
         }, os.getenv('SECRET'))
+        print(os.getenv('SECRET'))
         return jsonify({'token': token.decode('UTF-8')})
 
     @staticmethod

@@ -7,9 +7,17 @@ install:
   - "pip install -r requirements.txt"
   - "pip install coveralls"
 # command to run tests
-script:
-#  coverage run --source=functionalities -m py.test
+services:
+  - postgresql
+env:
+  global:
+    - SECRET=secretword
+before_script:
+  - psql -c 'create database test_flask_api;' -U postgres
+  - psql -c "ALTER USER "postgres" WITH PASSWORD 'newpassword';" -U postgres
 after_success:
   coveralls
 script:
+- nosetests tests/
 - nosetests  --with-coverage --cover-package=app
+# ALTER USER "user_name" WITH PASSWORD 'new_password';

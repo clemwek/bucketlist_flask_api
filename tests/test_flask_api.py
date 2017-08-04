@@ -104,6 +104,7 @@ class BucketlistTestCase(unittest.TestCase):
         """Test API can get a single bucketlist by using it's id."""
         self.client().post('/auth/register', data=self.user)
         user = self.client().post('/auth/login', data=self.user)
+        print(user)
         token = json.loads(user.data.decode())['token']
         self.bucketlist['auth-token'] = token
         res = self.client().post('/bucketlists', data=self.bucketlist)
