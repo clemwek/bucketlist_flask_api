@@ -9,6 +9,8 @@ install:
 # command to run tests
 services:
   - postgresql
+env:
+  - SECRET = 'thisIsADeepSecret'
 before_script:
   - psql -c 'create database test_flask_api;' -U postgres
   - psql -c "ALTER USER "postgres" WITH PASSWORD 'newpassword';" -U postgres
