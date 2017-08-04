@@ -11,7 +11,7 @@ services:
   - postgresql
 env:
   global:
-    - SECRET = 'some-very-long-string-of-random-characters-CHANGE-TO-YOUR-LIKING'
+    - SECRET=secretword
 before_script:
   - psql -c 'create database test_flask_api;' -U postgres
   - psql -c "ALTER USER "postgres" WITH PASSWORD 'newpassword';" -U postgres
