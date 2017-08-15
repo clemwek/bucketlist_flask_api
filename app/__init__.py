@@ -1,8 +1,8 @@
-from functools import wraps
+import os
 from flask_api import FlaskAPI
 from flask import request, jsonify, json, abort, make_response
+from functools import wraps
 from flask_sqlalchemy import SQLAlchemy
-import os
 import jwt
 
 
