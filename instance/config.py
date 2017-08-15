@@ -4,6 +4,7 @@ class Config(object):
     DEBUG = False
     TESTING = False
     CSRF_ENABLED = True
+    PORT = 5000
     SECRET_KEY = os.getenv('SECRET', 'my_precious')
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
 
