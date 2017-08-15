@@ -23,6 +23,10 @@ def create_app(config_name):
 
     from app.models.models import User, Bucketlist, Item
 
+    @app.route('/')
+    def index():
+        return 'this is working!'
+
     def token_required(f):
         @wraps(f)
         def decorated(*args, **kwargs):
