@@ -35,6 +35,20 @@ def register():
     username = str(request.data.get('username', ''))
     email = str(request.data.get('email', ''))
     password = str(request.data.get('password', ''))
+    found_username = User.query.filter_by(username=username).first()
+    found_email = User.query.filter_by(email=email).first()
+    if not email or not username or not password:
+        res = jsonify({'message': 'Some data is missing!'})
+        res.status_code = 406
+        return res
+    if found_username:
+        res = jsonify({'message': 'Username already used try anotherone.'})
+        res.status_code = 409
+        return res
+    if found_email:
+        res = jsonify({'message': 'Email already used try anotherone.'})
+        res.status_code = 409
+        return res
     new_user = User(username, email)
     new_user.hash_password(password)
     new_user.save()
