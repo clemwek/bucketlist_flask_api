@@ -27,8 +27,4 @@ def create_app(config_name):
     from app.views.item import item_blueprint
     app.register_blueprint(item_blueprint)
 
-    @app.route('/')
-    def index():
-        return 'this is working!'
-
     return app
