@@ -1,1 +1,1 @@
-web python manage:app
+web python run.py
