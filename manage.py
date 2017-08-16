@@ -9,7 +9,6 @@ migrate = Migrate(app, db)
 manager = Manager(app)
 
 manager.add_command('db', MigrateCommand)
-port = int(os.environ.get('PORT', 5000))
 
 if __name__ == '__main__':
-    manager.run('', port = port)
+    manager.run()
