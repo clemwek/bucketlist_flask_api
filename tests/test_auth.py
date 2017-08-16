@@ -24,6 +24,25 @@ class AuthTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 201)
         self.assertIn('Test text', str(res.data))
 
+        # Test for missing data
+        user_data = {'email': 'test@test.com', 'password': 'test'}
+        res = self.client().post('/auth/register', data=user_data)
+        self.assertEqual(res.status_code, 406)
+        self.assertIn('Some data is missing!', str(res.data))
+
+        # Test for existing username
+        user_data = {'username': 'Test text', 'email': 'test@test.com', 'password': 'test'}
+        res = self.client().post('/auth/register', data=user_data)
+        self.assertEqual(res.status_code, 409)
+        self.assertIn('Username already used try anotherone.', str(res.data))
+
+        # Test for existing email
+        user_data = {'username': 'Test unique', 'email': 'Test@text.com', 'password': 'test'}
+        res = self.client().post('/auth/register', data=user_data)
+        self.assertEqual(res.status_code, 409)
+        self.assertIn('Email already used try anotherone.', str(res.data))
+
+
     def test_user_login(self):
         """Test API can login a user (POST request)"""
         self.client().post('/auth/register', data=self.user)
