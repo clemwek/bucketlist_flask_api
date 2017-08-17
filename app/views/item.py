@@ -65,24 +65,29 @@ def add_items(current_user, id):
             response = jsonify(items_dict)
             response.status_code = 200
             return response
-        response =jsonify({'message': 'Items not found in the list'})
+        response = jsonify({'message': 'Items not found in the list'})
         response.status_code = 404
         return response
 
     if limit:
-        items = Item.query.filter_by(bucket_id=id).limit(int(limit))
-        items_dict = {"items": []}
-        for item in items:
-            dict_obj = {
-                "id": item.id,
-                "name": item.name,
-                "description": item.description,
-                "date": item.date
-            }
-            items_dict["items"].append(dict_obj)
-        response = jsonify(items_dict)
-        response.status_code = 200
-        return response
+        try:
+            items = Item.query.filter_by(bucket_id=id).limit(int(limit))
+            items_dict = {"items": []}
+            for item in items:
+                dict_obj = {
+                    "id": item.id,
+                    "name": item.name,
+                    "description": item.description,
+                    "date": item.date
+                }
+                items_dict["items"].append(dict_obj)
+            response = jsonify(items_dict)
+            response.status_code = 200
+            return response
+        except ValueError:
+            res = jsonify({'message': 'Please pass a numeral.'})
+            res.status_code = 406
+            return res
 
     items = Item.query.filter_by(bucket_id=id).all()
     item_dict = {"items": []}

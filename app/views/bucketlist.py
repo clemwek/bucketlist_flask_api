@@ -64,17 +64,22 @@ def bucketlist(current_user):
         return response
 
     if limit:
-        bucketlist = Bucketlist.query.filter_by(user_id=current_user.id).limit(int(limit))
-        bucketlist_dict = {"bucketlist": []}
-        for bucket in bucketlist:
-            dict_obj = {
-                "id": bucket.id,
-                "name": bucket.name
-            }
-            bucketlist_dict["bucketlist"].append(dict_obj)
-        response = jsonify(bucketlist_dict)
-        response.status_code = 200
-        return response
+        try:
+            bucketlist = Bucketlist.query.filter_by(user_id=current_user.id).limit(int(limit))
+            bucketlist_dict = {"bucketlist": []}
+            for bucket in bucketlist:
+                dict_obj = {
+                    "id": bucket.id,
+                    "name": bucket.name
+                }
+                bucketlist_dict["bucketlist"].append(dict_obj)
+            response = jsonify(bucketlist_dict)
+            response.status_code = 200
+            return response
+        except ValueError:
+            res = jsonify({'message': 'Please pass a numeral.'})
+            res.status_code = 406
+            return res
 
     user_id = current_user.id
     bucketlist = Bucketlist.query.filter_by(user_id=user_id).all()
