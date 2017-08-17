@@ -61,6 +61,7 @@ class ItemTestCase(unittest.TestCase):
 
         res = self.client().delete('/bucketlists/1/items/1', data=self.item)
         self.assertEqual(res.status_code, 200)
+        
         # Test to see if it exists, should return a 404
         result = self.client().get('/bucketlists/1/items/1', data=self.item)
         self.assertEqual(result.status_code, 404)
