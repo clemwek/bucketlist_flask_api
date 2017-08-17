@@ -39,11 +39,31 @@ class BucketlistTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertIn('test bucketlist', str(res.data))
 
+        # Test search q 
+        self.bucketlist['name'] = 'bucket2'
+        res = self.client().post('/bucketlists', data=self.bucketlist)
+        self.assertEqual(res.status_code, 201)
+        self.assertIn('bucket2', str(json.loads(res.data.decode())['name']))
+        res = self.client().get('/bucketlists?q=bucket2', data=self.bucketlist)
+        self.assertIn('bucket2', str(res.data))
+
+        # Test search q  for non existing data
+        res = self.client().get('/bucketlists?q=bucket5', data=self.bucketlist)
+        self.assertIn('Bucket not found in the list', str(res.data))
+
+        # Test search limit
+        res = self.client().get('/bucketlists?limit=1', data=self.bucketlist)
+        self.assertEqual(len(json.loads(res.data.decode())['bucketlist']), 1)
+
+        # Test search limit with no numerical
+        res = self.client().get('/bucketlists?limit=test', data=self.bucketlist)
+        self.assertIn('Please pass a numeral.', json.loads(res.data.decode()).values())
+
+
     def test_api_can_get_bucketlist_by_id(self):
         """Test API can get a single bucketlist by using it's id."""
         self.client().post('/auth/register', data=self.user)
         user = self.client().post('/auth/login', data=self.user)
-        print(user)
         token = json.loads(user.data.decode())['token']
         self.bucketlist['auth-token'] = token
         res = self.client().post('/bucketlists', data=self.bucketlist)

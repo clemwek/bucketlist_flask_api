@@ -41,14 +41,24 @@ class ItemTestCase(unittest.TestCase):
 
         # Test API can edit an existing bucketlist. (PUT request)
         self.item['item_name'] = 'test editing'
-        # print(self.item)
         res = self.client().put('/bucketlists/1/items/1', data=self.item)
         self.assertEqual(res.status_code, 200)
         results = self.client().get('/bucketlists/1/items', data=self.item)
         self.assertIn('test editing', str(results.data))
 
         # Test API can delete an existing bucketlist. (DELETE request)
-        
+        # Test search q  for non existing data
+        res = self.client().get('/bucketlists/1/items?q=item5', data=self.item)
+        self.assertIn('Items not found in the list', str(res.data))
+
+        # Test search limit
+        res = self.client().get('/bucketlists/1/items?limit=1', data=self.item)
+        self.assertEqual(len(json.loads(res.data.decode())['items']), 1)
+
+        # Test search limit with no numerical
+        res = self.client().get('/bucketlists/1/items?limit=test', data=self.item)
+        self.assertIn('Please pass a numeral.', json.loads(res.data.decode()).values())
+
         res = self.client().delete('/bucketlists/1/items/1', data=self.item)
         self.assertEqual(res.status_code, 200)
         # Test to see if it exists, should return a 404
