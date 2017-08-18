@@ -29,34 +29,34 @@ class BucketlistTestCase(unittest.TestCase):
         self.client().post('/auth/register', data=self.user)
         user = self.client().post('/auth/login', data=self.user)
         token = json.loads(user.data.decode())['token']
-        self.bucketlist['auth-token'] = token
-        res = self.client().post('/bucketlists', data=self.bucketlist)
+        token = {'Authorization': token}
+        res = self.client().post('/bucketlists', headers=token, data=self.bucketlist)
         self.assertEqual(res.status_code, 201)
         self.assertIn('test bucketlist', str(json.loads(res.data.decode())['name']))
 
         # Test getting bucketlist from db
-        res = self.client().get('/bucketlists', data=self.bucketlist)
+        res = self.client().get('/bucketlists', headers=token, data=self.bucketlist)
         self.assertEqual(res.status_code, 200)
         self.assertIn('test bucketlist', str(res.data))
 
-        # Test search q 
+        # Test search q
         self.bucketlist['name'] = 'bucket2'
-        res = self.client().post('/bucketlists', data=self.bucketlist)
+        res = self.client().post('/bucketlists', headers=token, data=self.bucketlist)
         self.assertEqual(res.status_code, 201)
         self.assertIn('bucket2', str(json.loads(res.data.decode())['name']))
-        res = self.client().get('/bucketlists?q=bucket2', data=self.bucketlist)
+        res = self.client().get('/bucketlists?q=bucket2', headers=token, data=self.bucketlist)
         self.assertIn('bucket2', str(res.data))
 
         # Test search q  for non existing data
-        res = self.client().get('/bucketlists?q=bucket5', data=self.bucketlist)
+        res = self.client().get('/bucketlists?q=bucket5', headers=token, data=self.bucketlist)
         self.assertIn('Bucket not found in the list', str(res.data))
 
         # Test search limit
-        res = self.client().get('/bucketlists?limit=1', data=self.bucketlist)
+        res = self.client().get('/bucketlists?limit=1', headers=token, data=self.bucketlist)
         self.assertEqual(len(json.loads(res.data.decode())['bucketlist']), 1)
 
         # Test search limit with no numerical
-        res = self.client().get('/bucketlists?limit=test', data=self.bucketlist)
+        res = self.client().get('/bucketlists?limit=test', headers=token, data=self.bucketlist)
         self.assertIn('Please pass a numeral.', json.loads(res.data.decode()).values())
 
 
@@ -65,27 +65,27 @@ class BucketlistTestCase(unittest.TestCase):
         self.client().post('/auth/register', data=self.user)
         user = self.client().post('/auth/login', data=self.user)
         token = json.loads(user.data.decode())['token']
-        self.bucketlist['auth-token'] = token
-        res = self.client().post('/bucketlists', data=self.bucketlist)
+        token = {'Authorization': token}
+        res = self.client().post('/bucketlists', headers=token, data=self.bucketlist)
         self.assertEqual(res.status_code, 201)
         id = json.loads(res.data.decode())['id']
         result = self.client().get(
-            '/bucketlists/{}'.format(id), data=self.bucketlist)
+            '/bucketlists/{}'.format(id), headers=token, data=self.bucketlist)
         self.assertEqual(result.status_code, 200)
         self.assertIn('test bucketlist', str(result.data))
 
         # Test API can edit an existing bucketlist. (PUT request)
         self.bucketlist['name'] = 'new name'
-        res = self.client().put('/bucketlists/1', data=self.bucketlist)
+        res = self.client().put('/bucketlists/1', headers=token, data=self.bucketlist)
         self.assertEqual(res.status_code, 200)
-        results = self.client().get('/bucketlists/1', data=self.bucketlist)
+        results = self.client().get('/bucketlists/1', headers=token, data=self.bucketlist)
         self.assertIn('new name', str(results.data))
 
         # Test API can delete an existing bucketlist. (DELETE request)
-        res = self.client().delete('/bucketlists/1', data=self.bucketlist)
+        res = self.client().delete('/bucketlists/1', headers=token, data=self.bucketlist)
         self.assertEqual(res.status_code, 200)
         # Test to see if it exists, should return a 404
-        result = self.client().get('/bucketlists/1', data=self.bucketlist)
+        result = self.client().get('/bucketlists/1', headers=token, data=self.bucketlist)
         self.assertEqual(result.status_code, 404)
 
     def tearDown(self):
