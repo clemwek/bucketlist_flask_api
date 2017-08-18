@@ -1,32 +1,10 @@
 import os
-import jwt
-from functools import wraps
 from flask import Blueprint, request, jsonify, make_response, abort
 from app.models.models import User, Bucketlist, Item
+from app.common import token_required
 
 item_blueprint = Blueprint('items', __name__)
 
-def token_required(f):
-    """This is to if there is a valid token"""
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        token = None
-
-        if 'auth-token' in request.data:
-            token = request.data['auth-token']
-
-        if not token:
-            return jsonify({'message': 'token is missing!'}), 401
-
-        try:
-            id = jwt.decode(token, os.getenv('SECRET'))['id']
-            current_user = User.query.filter_by(id=id).first()
-        except:
-            return jsonify({'message': 'Token is invalid!'}), 401
-
-        return f(current_user, *args, **kwargs)
-
-    return decorated
 
 @item_blueprint.route('/bucketlists/<id>/items', methods=['GET', 'POST'])
 @token_required
