@@ -1,32 +1,12 @@
-import os
-import jwt
-from functools import wraps
+"""
+This has all the auth code
+"""
+
+
 from flask import Blueprint, request, jsonify, make_response
 from app.models.models import User
 
 user_blueprint = Blueprint('auth', __name__)
-
-def token_required(f):
-    """This is to if there is a valid token"""
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        token = None
-
-        if 'auth-token' in request.data:
-            token = request.data['auth-token']
-
-        if not token:
-            return jsonify({'message': 'token is missing!'}), 401
-
-        try:
-            id = jwt.decode(token, os.getenv('SECRET'))['id']
-            current_user = User.query.filter_by(id=id).first()
-        except:
-            return jsonify({'message': 'Token is invalid!'}), 401
-
-        return f(current_user, *args, **kwargs)
-
-    return decorated
 
 
 @user_blueprint.route('/register', methods=['POST'])
@@ -68,20 +48,23 @@ def login():
     username = str(request.data.get('username', ''))
     password = str(request.data.get('password', ''))
     if not username or not password:
-        return make_response('could not veryfy: No data was send', 401,
-                            {'WWW-Authenticate':'Basic realm="login required!"'})
+        return make_response('could not veryfy: No data was send',
+                             401,
+                             {'WWW-Authenticate':'Basic realm="login required!"'})
 
     found_user = User.query.filter_by(username=username).first()
     if not found_user:
-        return make_response('could not veryfy: No user', 401,
-                            {'WWW-Authenticate':'Basic realm="login required!"'})
+        return make_response('could not veryfy: No user',
+                             401,
+                             {'WWW-Authenticate':'Basic realm="login required!"'})
 
     if found_user.check_hashed_password(password, found_user.password_hash):
         res = found_user.gen_token()
         res.status_code = 202
         return res
-    return make_response('could not veryfy: wrong password', 401,
-                        {'WWW-Authenticate':'Basic realm="login required!"'})
+    return make_response('could not veryfy: wrong password',
+                         401,
+                         {'WWW-Authenticate':'Basic realm="login required!"'})
 
 
 @user_blueprint.route('/logout', methods=['POST'])

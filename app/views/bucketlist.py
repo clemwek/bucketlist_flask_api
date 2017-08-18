@@ -1,4 +1,8 @@
-import os
+"""
+This has bucketlist code
+"""
+
+
 from flask import Blueprint, request, jsonify, make_response, abort
 from app.models.models import User, Bucketlist
 from app.common import token_required
@@ -24,10 +28,10 @@ def bucketlist(current_user):
     search = request.args.get('q')
     limit = request.args.get('limit')
     if search:
-        bucketlist = Bucketlist.query.filter_by(user_id=current_user.id, name=search).all()
-        if bucketlist:
+        found_bucketlist = Bucketlist.query.filter_by(user_id=current_user.id, name=search).all()
+        if found_bucketlist:
             bucketlist_dict = {"bucketlist": []}
-            for bucket in bucketlist:
+            for bucket in found_bucketlist:
                 dict_obj = {
                     "id": bucket.id,
                     "name": bucket.name
@@ -42,9 +46,9 @@ def bucketlist(current_user):
 
     if limit:
         try:
-            bucketlist = Bucketlist.query.filter_by(user_id=current_user.id).limit(int(limit))
+            found_bucketlist = Bucketlist.query.filter_by(user_id=current_user.id).limit(int(limit))
             bucketlist_dict = {"bucketlist": []}
-            for bucket in bucketlist:
+            for bucket in found_bucketlist:
                 dict_obj = {
                     "id": bucket.id,
                     "name": bucket.name
@@ -59,9 +63,9 @@ def bucketlist(current_user):
             return res
 
     user_id = current_user.id
-    bucketlist = Bucketlist.query.filter_by(user_id=user_id).all()
+    found_bucketlist = Bucketlist.query.filter_by(user_id=user_id).all()
     bucketlist_dict = {"bucketlist": []}
-    for bucket in bucketlist:
+    for bucket in found_bucketlist:
         dict_obj = {
             "id": bucket.id,
             "name": bucket.name
@@ -74,34 +78,35 @@ def bucketlist(current_user):
 @bucket_blueprint.route('/bucketlists/<int:id>', methods=['GET', 'PUT', 'DELETE'])
 @token_required
 def bucketlist_manipulation(current_user, id):
+    """returns individual post when GET, Edits when PUT and deletes when DELETE"""
     # retrieve a buckelist using it's ID
-    bucketlist = Bucketlist.query.filter_by(id=id).first()
-    if not bucketlist:
+    found_bucketlist = Bucketlist.query.filter_by(id=id).first()
+    if not found_bucketlist:
         # Raise an HTTPException with a 404 not found status code
         abort(404)
 
     if request.method == 'DELETE':
-        bucketlist.delete()
+        found_bucketlist.delete()
         return {
-            "message": "bucketlist {} deleted successfully".format(bucketlist.id)
+            "message": "bucketlist {} deleted successfully".format(found_bucketlist.id)
         }, 200
 
     elif request.method == 'PUT':
         # PUT
         name = request.data.get('name')
-        bucketlist.name = name
-        bucketlist.save()
+        found_bucketlist.name = name
+        found_bucketlist.save()
         response = jsonify({
-            'id': bucketlist.id,
-            'name': bucketlist.name
+            'id': found_bucketlist.id,
+            'name': found_bucketlist.name
         })
         response.status_code = 200
         return response
     elif request.method == 'GET':
         # GET
         response = jsonify({
-            'id': bucketlist.id,
-            'name': bucketlist.name
+            'id': found_bucketlist.id,
+            'name': found_bucketlist.name
         })
         response.status_code = 200
         return response

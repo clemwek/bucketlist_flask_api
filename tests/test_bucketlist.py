@@ -1,8 +1,11 @@
-import os
+"""
+This tests the functions in the bucketlist view
+"""
+
+
 import unittest
 import json
 from app import create_app, db
-from app.models.models import User
 
 
 class BucketlistTestCase(unittest.TestCase):

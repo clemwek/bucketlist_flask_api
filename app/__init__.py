@@ -1,6 +1,9 @@
-import os
+"""
+This create an instance of FlaskAPI and initialize some values
+"""
+
+
 from flask_api import FlaskAPI
-from flask import request, jsonify, json, abort, make_response
 from flask_sqlalchemy import SQLAlchemy
 
 
@@ -18,12 +21,15 @@ def create_app(config_name):
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     db.init_app(app)
 
+    # Import user/ auth blueprint
     from app.views.user import user_blueprint
     app.register_blueprint(user_blueprint, url_prefix='/auth')
 
+    # Import bucketlist blueprint
     from app.views.bucketlist import bucket_blueprint
     app.register_blueprint(bucket_blueprint)
 
+    # Import items blueprint
     from app.views.item import item_blueprint
     app.register_blueprint(item_blueprint)
 

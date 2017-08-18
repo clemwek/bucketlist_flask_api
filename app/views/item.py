@@ -1,4 +1,8 @@
-import os
+"""
+This has all the items code
+"""
+
+
 from flask import Blueprint, request, jsonify, make_response, abort
 from app.models.models import User, Bucketlist, Item
 from app.common import token_required
@@ -9,6 +13,7 @@ item_blueprint = Blueprint('items', __name__)
 @item_blueprint.route('/bucketlists/<id>/items', methods=['GET', 'POST'])
 @token_required
 def add_items(current_user, id):
+    """Adds an item when POST, returns all itmens when GET"""
     if request.method == 'POST':
         item_name = request.data.get('name')
         item_description = request.data.get('description')
@@ -84,7 +89,7 @@ def add_items(current_user, id):
 @item_blueprint.route('/bucketlists/<id>/items/<item_id>', methods=['GET', 'PUT', 'DELETE'])
 @token_required
 def items_manipulations(current_user, id, item_id):
-
+    """Returns single Item when GET, Edits when PUT and Deletes when DELETE"""
     found_item = Item.query.filter_by(id=item_id, bucket_id=id).first()
     if not found_item:
         res = jsonify({'message': 'Item not found'})

@@ -20,4 +20,3 @@ after_success:
 script:
 - nosetests tests/
 - nosetests  --with-coverage --cover-package=app
-# ALTER USER "user_name" WITH PASSWORD 'new_password';

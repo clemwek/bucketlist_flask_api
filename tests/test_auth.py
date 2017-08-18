@@ -1,8 +1,10 @@
-import os
+"""
+This tests the functions in the user(auth) view
+"""
+
+
 import unittest
-import json
 from app import create_app, db
-from app.models.models import User
 
 
 class AuthTestCase(unittest.TestCase):
