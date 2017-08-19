@@ -32,6 +32,12 @@ class AuthTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 406)
         self.assertIn('Some data is missing!', str(res.data))
 
+        # Test for incorrect email
+        user_data = {'username': 'testre', 'email': 'testtest.com', 'password': 'test'}
+        res = self.client().post('/auth/register', data=user_data)
+        self.assertEqual(res.status_code, 406)
+        self.assertIn('Please provide a valid email.', str(res.data))
+
         # Test for existing username
         user_data = {'username': 'Test text', 'email': 'test@test.com', 'password': 'test'}
         res = self.client().post('/auth/register', data=user_data)
