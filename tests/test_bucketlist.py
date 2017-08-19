@@ -44,7 +44,7 @@ class BucketlistTestCase(unittest.TestCase):
         self.assertIn('Some data is missing!', str(res.data))
 
         # Test getting bucketlist from db
-        res = self.client().get('/bucketlists', headers=token, data=self.bucketlist)
+        res = self.client().get('/bucketlists', headers=token)
         self.assertEqual(res.status_code, 200)
         self.assertIn('test bucketlist', str(res.data))
 
@@ -53,8 +53,12 @@ class BucketlistTestCase(unittest.TestCase):
         res = self.client().post('/bucketlists', headers=token, data=self.bucketlist)
         self.assertEqual(res.status_code, 201)
         self.assertIn('bucket2', str(json.loads(res.data.decode())['name']))
-        res = self.client().get('/bucketlists?q=bucket2', headers=token, data=self.bucketlist)
+        res = self.client().get('/bucketlists?q=bucket2', headers=token)
         self.assertIn('bucket2', str(res.data))
+        res = self.client().get('/bucketlists?q=buck', headers=token)
+        self.assertEqual(len(json.loads(res.data.decode())['bucketlist']), 2)
+
+
 
         # Test search q  for non existing data
         res = self.client().get('/bucketlists?q=bucket5', headers=token, data=self.bucketlist)
