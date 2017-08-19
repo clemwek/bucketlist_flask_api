@@ -1,6 +1,7 @@
 import os
-import jwt
+import datetime
 from functools import wraps
+import jwt
 from flask import request, jsonify
 from app.models.models import User
 
@@ -25,3 +26,11 @@ def token_required(f):
         return f(current_user, *args, **kwargs)
 
     return decorated
+
+def validate_date(date):
+    """This validates is the passed date"""
+    try:
+        datetime.datetime.strptime(date, '%m/%d/%Y')
+        return True
+    except ValueError:
+        return False
