@@ -1,4 +1,10 @@
+"""
+This has globaly needed functions
+"""
+
+
 import os
+import re
 import datetime
 from functools import wraps
 import jwt
@@ -34,3 +40,8 @@ def validate_date(date):
         return True
     except ValueError:
         return False
+
+def email_is_valid(email):
+    """This validates an email"""
+    email_address_matcher = re.compile(r'^[\w-]+@([\w-]+\.)+[\w]+$')
+    return True if email_address_matcher.match(email) else False
