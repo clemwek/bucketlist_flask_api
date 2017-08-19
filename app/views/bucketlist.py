@@ -16,6 +16,13 @@ def bucketlist(current_user):
     """ Adds bucketlist when post a shows when get """
     if request.method == 'POST':
         name = request.data.get('name')
+
+        # Test for missing data
+        if not name:
+            res = jsonify({'message': 'Some data is missing!'})
+            res.status_code = 403
+            return res
+
         user_id = current_user.id
         new_bucketlist = Bucketlist(name, user_id)
         new_bucketlist.save()
@@ -25,6 +32,7 @@ def bucketlist(current_user):
         })
         response.status_code = 201
         return response
+
     search = request.args.get('q')
     limit = request.args.get('limit')
     if search:
@@ -40,6 +48,7 @@ def bucketlist(current_user):
             response = jsonify(bucketlist_dict)
             response.status_code = 200
             return response
+
         response = jsonify({'message': 'Bucket not found in the list'})
         response.status_code = 404
         return response

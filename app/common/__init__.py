@@ -1,6 +1,13 @@
+"""
+This has globaly needed functions
+"""
+
+
 import os
-import jwt
+import re
+import datetime
 from functools import wraps
+import jwt
 from flask import request, jsonify
 from app.models.models import User
 
@@ -25,3 +32,16 @@ def token_required(f):
         return f(current_user, *args, **kwargs)
 
     return decorated
+
+def validate_date(date):
+    """This validates is the passed date"""
+    try:
+        datetime.datetime.strptime(date, '%m/%d/%Y')
+        return True
+    except ValueError:
+        return False
+
+def email_is_valid(email):
+    """This validates an email"""
+    email_address_matcher = re.compile(r'^[\w-]+@([\w-]+\.)+[\w]+$')
+    return True if email_address_matcher.match(email) else False

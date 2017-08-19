@@ -17,7 +17,7 @@ class ItemTestCase(unittest.TestCase):
         self.client = self.app.test_client
         self.user = {'username': 'Test text', 'email': 'Test@text.com', 'password': 'Testtext'}
         self.bucketlist = {'name':'test bucketlist'}
-        self.item = {'name': 'test item', 'description': 'This is a test', 'date': 'today'}
+        self.item = {'name': 'test item', 'description': 'This is a test', 'date': '08/05/2017'}
 
         # binds the app to the current context
         with self.app.app_context():
@@ -40,6 +40,18 @@ class ItemTestCase(unittest.TestCase):
         res = self.client().post('/bucketlists/1/items', headers=token, data=self.item)
         self.assertEqual(res.status_code, 201)
         self.assertIn('test item', str(json.loads(res.data.decode())['item_name']))
+
+        # Test for incorrect date format
+        self.item['date'] = 'today'
+        res = self.client().post('/bucketlists/1/items', headers=token, data=self.item)
+        self.assertEqual(res.status_code, 403)
+        self.assertIn('date is not valid', str(res.data))
+
+        # Test for missing data
+        self.item['date'] = ''
+        res = self.client().post('/bucketlists/1/items', headers=token, data=self.item)
+        self.assertEqual(res.status_code, 403)
+        self.assertIn('Some data is missing!', str(res.data))
 
         # Test API can edit an existing bucketlist. (PUT request)
         self.item['item_name'] = 'test editing'

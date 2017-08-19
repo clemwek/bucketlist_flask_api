@@ -3,9 +3,10 @@ This has all the items code
 """
 
 
-from flask import Blueprint, request, jsonify, make_response, abort
-from app.models.models import User, Bucketlist, Item
+from flask import Blueprint, request, jsonify
+from app.models.models import Item
 from app.common import token_required
+from app.common import validate_date
 
 item_blueprint = Blueprint('items', __name__)
 
@@ -19,6 +20,16 @@ def add_items(current_user, id):
         item_description = request.data.get('description')
         item_date = request.data.get('date')
         item_bucket_id = id
+
+        if not item_name or not item_description or not item_date:
+            res = jsonify({'message': 'Some data is missing!'})
+            res.status_code = 403
+            return res
+
+        if not validate_date(item_date):
+            res = jsonify({'message': 'date is not valid'})
+            res.status_code = 403
+            return res
 
         new_item = Item(item_name, item_description, item_date, item_bucket_id)
         new_item.save()
@@ -34,7 +45,8 @@ def add_items(current_user, id):
     limit = request.args.get('limit')
 
     if search:
-        items = Item.query.filter_by(bucket_id=id, name=search).all()
+        # TODO: search for like and pagination
+        items = Item.query.filter_by(name=search, bucket_id=id).all()
         if items:
             items_dict = {"items": []}
             for item in items:
@@ -72,6 +84,7 @@ def add_items(current_user, id):
             res.status_code = 406
             return res
 
+    # TODO: Add pagination
     items = Item.query.filter_by(bucket_id=id).all()
     item_dict = {"items": []}
     for item in items:
@@ -97,6 +110,7 @@ def items_manipulations(current_user, id, item_id):
         return res
 
     if request.method == 'PUT':
+        # PUT
         found_item.name = request.data.get('item_name')
         found_item.description = request.data.get('description')
         found_item.date = request.data.get('date')
@@ -122,6 +136,7 @@ def items_manipulations(current_user, id, item_id):
         return response
 
     elif request.method == 'DELETE':
+        # DELETE
         found_item.delete()
         return jsonify({
             'message': 'Item was deleted successful'

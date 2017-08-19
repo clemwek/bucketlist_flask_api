@@ -37,6 +37,12 @@ class BucketlistTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 201)
         self.assertIn('test bucketlist', str(json.loads(res.data.decode())['name']))
 
+        # Test with missing data
+        self.bucketlist['name'] = ''
+        res = self.client().post('/bucketlists', headers=token, data=self.bucketlist)
+        self.assertEqual(res.status_code, 403)
+        self.assertIn('Some data is missing!', str(res.data))
+
         # Test getting bucketlist from db
         res = self.client().get('/bucketlists', headers=token, data=self.bucketlist)
         self.assertEqual(res.status_code, 200)
