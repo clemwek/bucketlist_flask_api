@@ -2,7 +2,7 @@
 This has all the auth code
 """
 
-
+from app.common import email_is_valid
 from flask import Blueprint, request, jsonify
 from app.models.models import User
 
@@ -18,6 +18,11 @@ def register():
 
     if not email or not username or not password:
         res = jsonify({'message': 'Some data is missing!'})
+        res.status_code = 406
+        return res
+
+    if not email_is_valid(email):
+        res = jsonify({'message': 'Please provide a valid email.'})
         res.status_code = 406
         return res
 
