@@ -36,7 +36,8 @@ def bucketlist(current_user):
     search = request.args.get('q')
     limit = request.args.get('limit')
     if search:
-        found_bucketlist = Bucketlist.query.filter_by(user_id=current_user.id, name=search).all()
+        found_bucketlist = Bucketlist.query.filter_by(user_id=current_user.id).filter(
+            Bucketlist.name.like('%'+search+'%')).all()
         if found_bucketlist:
             bucketlist_dict = {"bucketlist": []}
             for bucket in found_bucketlist:
