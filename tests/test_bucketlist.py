@@ -28,11 +28,18 @@ class BucketlistTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 401)
         self.assertIn('token is missing!', str(res.data))
 
-        # Test with valid token
+        # reating a valid token
         self.client().post('/auth/register', data=self.user)
         user = self.client().post('/auth/login', data=self.user)
         token = json.loads(user.data.decode())['token']
         token = {'Authorization': token}
+
+        # Test getting empty bucketlist from db
+        res = self.client().get('/bucketlists', headers=token)
+        self.assertEqual(res.status_code, 403)
+        self.assertIn('There are no bucketlists added yet.', str(res.data))
+
+        # Test with valid token
         res = self.client().post('/bucketlists', headers=token, data=self.bucketlist)
         self.assertEqual(res.status_code, 201)
         self.assertIn('test bucketlist', str(json.loads(res.data.decode())['name']))
@@ -43,8 +50,10 @@ class BucketlistTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 403)
         self.assertIn('Some data is missing!', str(res.data))
 
+
         # Test getting bucketlist from db
         res = self.client().get('/bucketlists', headers=token)
+        print(res.data)
         self.assertEqual(res.status_code, 200)
         self.assertIn('test bucketlist', str(res.data))
 
@@ -58,15 +67,14 @@ class BucketlistTestCase(unittest.TestCase):
         res = self.client().get('/bucketlists?q=buck', headers=token)
         self.assertEqual(len(json.loads(res.data.decode())['bucketlist']), 2)
 
-
-
         # Test search q  for non existing data
         res = self.client().get('/bucketlists?q=bucket5', headers=token, data=self.bucketlist)
         self.assertIn('Bucket not found in the list', str(res.data))
 
         # Test search limit
-        res = self.client().get('/bucketlists?limit=1', headers=token, data=self.bucketlist)
-        self.assertEqual(len(json.loads(res.data.decode())['bucketlist']), 1)
+        res = self.client().get('/bucketlists?limiit=1', headers=token, data=self.bucketlist)
+        print(res.data, 'This is the seae=rch limit')
+        self.assertEqual(len(json.loads(res.data.decode())['bucketlist']), 2)
 
         # Test search limit with no numerical
         res = self.client().get('/bucketlists?limit=test', headers=token, data=self.bucketlist)
