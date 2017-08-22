@@ -33,8 +33,15 @@ def bucketlist(current_user):
         response.status_code = 201
         return response
 
+    # GET
     search = request.args.get('q')
-    limit = request.args.get('limit')
+    page = int(request.args.get('page', default=1))
+    try:
+        limit = int(request.args.get('limit', default=10))
+    except ValueError:
+        res = jsonify({'message': 'Please pass a numeral.'})
+        res.status_code = 406
+        return res
     if search:
         found_bucketlist = Bucketlist.query.filter_by(user_id=current_user.id).filter(
             Bucketlist.name.like('%'+search+'%')).all()
@@ -54,33 +61,35 @@ def bucketlist(current_user):
         response.status_code = 404
         return response
 
-    if limit:
-        try:
-            found_bucketlist = Bucketlist.query.filter_by(user_id=current_user.id).limit(int(limit))
-            bucketlist_dict = {"bucketlist": []}
-            for bucket in found_bucketlist:
-                dict_obj = {
-                    "id": bucket.id,
-                    "name": bucket.name
-                }
-                bucketlist_dict["bucketlist"].append(dict_obj)
-            response = jsonify(bucketlist_dict)
-            response.status_code = 200
-            return response
-        except ValueError:
-            res = jsonify({'message': 'Please pass a numeral.'})
-            res.status_code = 406
-            return res
-
     user_id = current_user.id
-    found_bucketlist = Bucketlist.query.filter_by(user_id=user_id).all()
+    found_bucketlist = Bucketlist.query.filter_by(user_id=user_id).paginate(page, limit, False)
+    url_endpoint = '/bucketlists'
+    if not found_bucketlist.items:
+        res = jsonify({'message': 'There are no bucketlists added yet.'})
+        res.status_code = 403
+        return res
+
     bucketlist_dict = {"bucketlist": []}
-    for bucket in found_bucketlist:
+    next_page = found_bucketlist.has_next if found_bucketlist.has_next else ''
+    previous_page = found_bucketlist.has_prev if found_bucketlist.has_prev else ''
+    if next_page:
+        next_page = url_endpoint + '?page=' + str(page + 1) + '&limit=' + str(limit)
+    else:
+        next_page = ''
+
+    if previous_page:
+        previous_page = url_endpoint + '?page=' + str(page - 1) + '&limit=' + str(limit)
+    else:
+        previous_page = ''
+
+    for bucket in found_bucketlist.items:
         dict_obj = {
             "id": bucket.id,
             "name": bucket.name
         }
         bucketlist_dict["bucketlist"].append(dict_obj)
+    bucketlist_dict['next_page'] = next_page
+    bucketlist_dict['previous_page'] = previous_page
     response = jsonify(bucketlist_dict)
     response.status_code = 200
     return response
