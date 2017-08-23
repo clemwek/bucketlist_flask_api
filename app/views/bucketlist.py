@@ -10,10 +10,36 @@ from app.common import token_required
 bucket_blueprint = Blueprint('bucketlist', __name__)
 
 
-@bucket_blueprint.route('/bucketlists', methods=['GET', 'POST'])
+@bucket_blueprint.route('/bucketlists', methods=['POST'])
 @token_required
 def bucketlist(current_user):
-    """ Adds bucketlist when post a shows when get """
+    """ Register a new user
+    ---
+    tags:
+      - "Bucketlist"
+    parameters:
+      - name: "Authorization"
+        in: "header"
+        description: "Token of a logged in user"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "name"
+        description: "name of the bucketlist"
+        required: true
+        schema:
+          type: "object"
+          required:
+          - "name"
+          properties:
+            name:
+              type: "string"
+    responses:
+        201:
+          description: " Success"
+        403:
+          description: "Some data is missing!"
+    """
     if request.method == 'POST':
         name = request.data.get('name')
 
@@ -33,6 +59,26 @@ def bucketlist(current_user):
         response.status_code = 201
         return response
 
+
+@bucket_blueprint.route('/bucketlists', methods=['GET'])
+@token_required
+def get_bucketlist(current_user):
+    """ Register a new user
+    ---
+    tags:
+      - "Bucketlist"
+    parameters:
+      - name: "Authorization"
+        in: "header"
+        description: "Token of a logged in user"
+        required: true
+        type: "string"
+    responses:
+        403:
+          description: "There are no bucketlists added yet."
+        200:
+          description: " Success"
+    """
     # GET
     search = request.args.get('q')
     page = int(request.args.get('page', default=1))
@@ -58,7 +104,7 @@ def bucketlist(current_user):
             return response
 
         response = jsonify({'message': 'Bucket not found in the list'})
-        response.status_code = 404
+        response.status_code = 403
         return response
 
     user_id = current_user.id
@@ -94,35 +140,134 @@ def bucketlist(current_user):
     response.status_code = 200
     return response
 
-@bucket_blueprint.route('/bucketlists/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+@bucket_blueprint.route('/bucketlists/<int:id>', methods=['DELETE'])
 @token_required
-def bucketlist_manipulation(current_user, id):
-    """returns individual post when GET, Edits when PUT and deletes when DELETE"""
+def delete_bucketlist(current_user, id):
+    """ Delete bucketlist
+            ---
+            tags:
+            - "Bucketlist"
+            produces:
+                - "application/json"
+            parameters:
+            - name: "Authorization"
+              in: "header"
+              description: "Token for user"
+              required: true
+              type: "string"
+            - name: bucketlistID
+              in: "path"
+              description: "The ID the bucketlist"
+              required: true
+              type: "string"
+            responses:
+                200:
+                  description: "Bucketlist delete Successfully"
+                403:
+                  description: "bucketlist do not exist"
+           """
     # retrieve a buckelist using it's ID
     found_bucketlist = Bucketlist.query.filter_by(id=id).first()
     if not found_bucketlist:
         # Raise an HTTPException with a 404 not found status code
-        abort(404)
+        return {
+            "message": "bucketlist {} not found".format(found_bucketlist.name)
+        }, 403
 
     if request.method == 'DELETE':
         found_bucketlist.delete()
         return {
-            "message": "bucketlist {} deleted successfully".format(found_bucketlist.id)
+            "message": "bucketlist {} deleted successfully".format(found_bucketlist.name)
         }, 200
+
+@bucket_blueprint.route('/bucketlists/<int:id>', methods=['GET'])
+@token_required
+def get_single_bucketlist(current_user, id):
+    """ Get bucketlist
+            ---
+            tags:
+            - "Bucketlist"
+            produces:
+                - "application/json"
+            parameters:
+            - name: "Authorization"
+              in: "header"
+              description: "Token for user"
+              required: true
+              type: "string"
+            - name: bucketlistID
+              in: "path"
+              description: "The ID the bucketlist"
+              required: true
+              type: "string"
+            responses:
+                200:
+                  description: "Bucketlist found Successfully"
+                403:
+                  description: "bucketlist do not exist"
+           """
+    # retrieve a buckelist using it's ID
+    found_bucketlist = Bucketlist.query.filter_by(id=id).first()
+    if not found_bucketlist:
+        # Raise an HTTPException with a 403 not found status code
+        return {
+            "message": "bucketlist {} not found".format(found_bucketlist.name)
+        }, 403
+
+    # GET
+    response = jsonify({
+        'id': found_bucketlist.id,
+        'name': found_bucketlist.name
+    })
+    response.status_code = 200
+    return response
+
+@bucket_blueprint.route('/bucketlists/<int:id>', methods=['PUT'])
+@token_required
+def update_bucketlist(current_user, id):
+    """ Update bucketlist
+            ---
+            tags:
+            - "Bucketlist"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+            - name: "Authorization"
+              in: "header"
+              description: "Token of a logged in user"
+              required: true
+              type: "string"
+            - name: bucketlistID
+              in: "path"
+              description: "The ID the bucketlist"
+              required: true
+              type: "string"
+            - name: newname
+              in: "formData"
+              description: "The new name of the bucketlist"
+              required: true
+              type: "string"
+            responses:
+                200:
+                  description: "Bucketlist updated Successfully"
+                403:
+                  description: "Update Doesn't exist"
+           """
+    # retrieve a buckelist using it's ID
+    found_bucketlist = Bucketlist.query.filter_by(id=id).first()
+    if not found_bucketlist:
+        # Raise an HTTPException with a 404 not found status code
+        return {
+            "message": "bucketlist {} not found".format(found_bucketlist.name)
+        }, 403
 
     elif request.method == 'PUT':
         # PUT
         name = request.data.get('name')
         found_bucketlist.name = name
         found_bucketlist.save()
-        response = jsonify({
-            'id': found_bucketlist.id,
-            'name': found_bucketlist.name
-        })
-        response.status_code = 200
-        return response
-    elif request.method == 'GET':
-        # GET
         response = jsonify({
             'id': found_bucketlist.id,
             'name': found_bucketlist.name
