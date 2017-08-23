@@ -4,6 +4,7 @@ This create an instance of FlaskAPI and initialize some values
 
 
 from flask_api import FlaskAPI
+from flasgger import Swagger
 from flask_sqlalchemy import SQLAlchemy
 
 
@@ -20,6 +21,7 @@ def create_app(config_name):
     app.config.from_pyfile('config.py')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     db.init_app(app)
+    swagger = Swagger(app)
 
     # Import user/ auth blueprint
     from app.views.user import user_blueprint
