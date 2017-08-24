@@ -42,13 +42,16 @@ class User(db.Model):
         }, os.getenv('SECRET'))
         return jsonify({'token': token.decode('UTF-8')})
 
-    @staticmethod
-    def get_all():
-        return Bucketlist.query.all()
-
     def delete(self):
         db.session.delete(self)
         db.session.commit()
+
+    def serialize(self, message, status_code):
+        return jsonify({
+            'message': message,
+            'username': self.username,
+            'email': self.email
+        }), status_code
 
     def __repr__(self):
         return "<User: {}, with email: {}.>".format(self.username, self.email)
@@ -74,9 +77,8 @@ class Bucketlist(db.Model):
         db.session.add(self)
         db.session.commit()
 
-    @staticmethod
-    def get_all():
-        return Bucketlist.query.all()
+    def get_all(self):
+        return Bucketlist.query.filter_by(user_id=self.id).all()
 
     def delete(self):
         db.session.delete(self)

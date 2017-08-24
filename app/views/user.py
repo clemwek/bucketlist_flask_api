@@ -1,7 +1,9 @@
 """
 This has all the auth code
 """
-
+import os
+import datetime
+import jwt
 from flask import Blueprint, request, jsonify
 
 from app.common import email_is_valid
@@ -44,24 +46,24 @@ def register():
     password = str(request.data.get('password', ''))
 
     if not email or not username or not password:
-        res = jsonify({'message': 'Some data is missing!'})
+        res = jsonify({'error': 'Some data is missing!'})
         res.status_code = 406
         return res
 
     if not email_is_valid(email):
-        res = jsonify({'message': 'Please provide a valid email.'})
+        res = jsonify({'error': 'Please provide a valid email.'})
         res.status_code = 406
         return res
 
     found_username = User.query.filter_by(username=username).first()
     found_email = User.query.filter_by(email=email).first()
     if found_username:
-        res = jsonify({'message': 'Username already used try anotherone.'})
+        res = jsonify({'error': 'Username already used try another.'})
         res.status_code = 409
         return res
 
     if found_email:
-        res = jsonify({'message': 'Email already used try anotherone.'})
+        res = jsonify({'error': 'Email already used try another.'})
         res.status_code = 409
         return res
 
@@ -69,13 +71,7 @@ def register():
     new_user.hash_password(password)
     new_user.save()
 
-    res = jsonify({
-        'message': 'user created!',
-        'username': new_user.username,
-        'email': new_user.email
-    })
-    res.status_code = 201
-    return res
+    return new_user.serialize('User created!', 201)
 
 
 @user_blueprint.route('/login', methods=['POST'])
@@ -109,13 +105,13 @@ def login():
     password = str(request.data.get('password', ''))
 
     if not username or not password:
-        res = jsonify({'message': 'could not veryfy: Some data was not send'})
+        res = jsonify({'error': 'could not verify: Some data was not send'})
         res.status_code = 403
         return res
 
     found_user = User.query.filter_by(username=username).first()
     if not found_user:
-        res = jsonify({'message': 'could not veryfy: No user'})
+        res = jsonify({'error': 'could not verify: No user'})
         res.status_code = 401
         return res
 
@@ -124,7 +120,7 @@ def login():
         res.status_code = 202
         return res
     else:
-        res = jsonify({'message': 'could not veryfy: wrong password'})
+        res = jsonify({'error': 'could not veryfy: wrong password'})
         res.status_code = 401
         return res
 
