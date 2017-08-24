@@ -86,7 +86,6 @@ def add_items(current_user, id):
 @item_blueprint.route('/bucketlists/<id>/items', methods=['GET'])
 @token_required
 def get_items(current_user, id):
-
     """Add item to bucketlist
                 ---
                 tags:
@@ -110,63 +109,57 @@ def get_items(current_user, id):
                     403:
                       description: "Items not found in the list"
                """
+
+    url_endpoint = '/bucketlists'
     search = request.args.get('q')
-    limit = request.args.get('limit')
+    page = int(request.args.get('page', default=1))
+
+    try:
+        limit = int(request.args.get('limit', default=10))
+    except ValueError:
+        res = jsonify({'message': 'Please pass a numeral.'})
+        res.status_code = 406
+        return res
 
     if search:
-        # TODO: search for like and pagination
-        items = Item.query.filter_by(name=search, bucket_id=id).all()
-        if items:
-            items_dict = {"items": []}
-            for item in items:
-                dict_obj = {
-                    "id": item.id,
-                    "name": item.name,
-                    "description": item.description,
-                    "date": item.date
-                }
-                items_dict["items"].append(dict_obj)
-            response = jsonify(items_dict)
-            response.status_code = 200
-            return response
-        response = jsonify({'message': 'Items not found in the list'})
-        response.status_code = 403
-        return response
+        found_items = Item.query.filter_by(bucket_id=id).filter(
+            Item.name.like('%'+search+'%')).paginate(page, limit, False)
+    else:
+        found_items = Item.query.filter_by(bucket_id=id).paginate(page, limit, False)
 
-    if limit:
-        try:
-            items = Item.query.filter_by(bucket_id=id).limit(int(limit))
-            items_dict = {"items": []}
-            for item in items:
-                dict_obj = {
-                    "id": item.id,
-                    "name": item.name,
-                    "description": item.description,
-                    "date": item.date
-                }
-                items_dict["items"].append(dict_obj)
-            response = jsonify(items_dict)
-            response.status_code = 200
-            return response
-        except ValueError:
-            res = jsonify({'message': 'Please pass a numeral.'})
-            res.status_code = 406
-            return res
+    if not found_items.items:
+        res = jsonify({'message': 'There are no items added yet.'})
+        res.status_code = 403
+        return res
 
-    # TODO: Add pagination
-    items = Item.query.filter_by(bucket_id=id).all()
-    item_dict = {"items": []}
-    for item in items:
+    items_dict = {"items": []}
+    next_page = found_items.has_next if found_items.has_next else ''
+    previous_page = found_items.has_prev if found_items.has_prev else ''
+
+    if next_page:
+        next_page = url_endpoint + '?page=' + str(page + 1) + '&limit=' + str(limit)
+    else:
+        next_page = ''
+
+    if previous_page:
+        previous_page = url_endpoint + '?page=' + str(page - 1) + '&limit=' + str(limit)
+    else:
+        previous_page = ''
+
+    for item in found_items.items:
         dict_obj = {
             "id": item.id,
             "name": item.name,
             "description": item.description,
             "date": item.date
         }
-        item_dict["items"].append(dict_obj)
-    response = jsonify(item_dict)
+        items_dict["items"].append(dict_obj)
+    items_dict['next_page'] = next_page
+    items_dict['previous_page'] = previous_page
+    response = jsonify(items_dict)
     response.status_code = 200
     return response
+
 
 @item_blueprint.route('/bucketlists/<id>/items/<item_id>', methods=['PUT'])
 @token_required

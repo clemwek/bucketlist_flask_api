@@ -79,6 +79,7 @@ def get_bucketlist(current_user):
           description: " Success"
     """
     # GET
+    url_endpoint = '/bucketlists'
     search = request.args.get('q')
     page = int(request.args.get('page', default=1))
     try:
@@ -87,28 +88,14 @@ def get_bucketlist(current_user):
         res = jsonify({'message': 'Please pass a numeral.'})
         res.status_code = 406
         return res
+
     if search:
         found_bucketlist = Bucketlist.query.filter_by(user_id=current_user.id).filter(
-            Bucketlist.name.like('%'+search+'%')).all()
-        if found_bucketlist:
-            bucketlist_dict = {"bucketlist": []}
-            for bucket in found_bucketlist:
-                dict_obj = {
-                    "id": bucket.id,
-                    "name": bucket.name
-                }
-                bucketlist_dict["bucketlist"].append(dict_obj)
-            response = jsonify(bucketlist_dict)
-            response.status_code = 200
-            return response
+            Bucketlist.name.like('%'+search+'%')).paginate(page, limit, False)
+    else:
+        found_bucketlist = Bucketlist.query.filter_by(user_id=current_user.id).paginate(
+            page, limit, False)
 
-        response = jsonify({'message': 'Bucket not found in the list'})
-        response.status_code = 403
-        return response
-
-    user_id = current_user.id
-    found_bucketlist = Bucketlist.query.filter_by(user_id=user_id).paginate(page, limit, False)
-    url_endpoint = '/bucketlists'
     if not found_bucketlist.items:
         res = jsonify({'message': 'There are no bucketlists added yet.'})
         res.status_code = 403
