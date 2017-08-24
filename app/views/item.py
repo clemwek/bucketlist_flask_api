@@ -213,6 +213,7 @@ def edit_items(current_user, id, item_id):
     response.status_code = 200
     return response
 
+
 @item_blueprint.route('/bucketlists/<id>/items/<item_id>', methods=['GET'])
 @token_required
 def get_single_items(current_user, id, item_id):
@@ -232,6 +233,7 @@ def get_single_items(current_user, id, item_id):
     })
     response.status_code = 200
     return response
+
 
 @item_blueprint.route('/bucketlists/<id>/items/<item_id>', methods=['GET', 'PUT', 'DELETE'])
 @token_required

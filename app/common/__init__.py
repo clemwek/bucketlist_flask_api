@@ -11,6 +11,7 @@ import jwt
 from flask import request, jsonify
 from app.models.models import User
 
+
 def token_required(f):
     """This is to if there is a valid token"""
     @wraps(f)
@@ -33,6 +34,7 @@ def token_required(f):
 
     return decorated
 
+
 def validate_date(date):
     """This validates is the passed date"""
     try:
@@ -40,6 +42,7 @@ def validate_date(date):
         return True
     except ValueError:
         return False
+
 
 def email_is_valid(email):
     """This validates an email"""

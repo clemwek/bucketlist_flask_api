@@ -3,8 +3,8 @@ This has bucketlist code
 """
 
 
-from flask import Blueprint, request, jsonify, make_response, abort
-from app.models.models import User, Bucketlist, Item
+from flask import Blueprint, request, jsonify
+from app.models.models import Bucketlist, Item
 from app.common import token_required
 
 bucket_blueprint = Blueprint('bucketlist', __name__)
@@ -126,6 +126,7 @@ def get_bucketlist(current_user):
     response.status_code = 200
     return response
 
+
 @bucket_blueprint.route('/bucketlists/<int:id>', methods=['DELETE'])
 @token_required
 def delete_bucketlist(current_user, id):
@@ -165,6 +166,7 @@ def delete_bucketlist(current_user, id):
         return {
             "message": "bucketlist {} deleted successfully".format(found_bucketlist.name)
         }, 200
+
 
 @bucket_blueprint.route('/bucketlists/<int:id>', methods=['GET'])
 @token_required
@@ -210,6 +212,7 @@ def get_single_bucketlist(current_user, id):
     })
     response.status_code = 200
     return response
+
 
 @bucket_blueprint.route('/bucketlists/<int:id>', methods=['PUT'])
 @token_required
