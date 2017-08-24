@@ -4,7 +4,7 @@ This has bucketlist code
 
 
 from flask import Blueprint, request, jsonify, make_response, abort
-from app.models.models import User, Bucketlist
+from app.models.models import User, Bucketlist, Item
 from app.common import token_required
 
 bucket_blueprint = Blueprint('bucketlist', __name__)
@@ -199,11 +199,14 @@ def get_single_bucketlist(current_user, id):
         return {
             "message": "bucketlist not found"
         }, 403
+    bucket_items = Item.query.filter_by(bucket_id=id).all()
+    bucket_item_list = [item.name for item in bucket_items]
 
     # GET
     response = jsonify({
         'id': found_bucketlist.id,
-        'name': found_bucketlist.name
+        'name': found_bucketlist.name,
+        'items': bucket_item_list
     })
     response.status_code = 200
     return response
