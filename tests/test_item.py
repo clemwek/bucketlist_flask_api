@@ -57,16 +57,17 @@ class ItemTestCase(unittest.TestCase):
         self.item['item_name'] = 'test editing'
         res = self.client().put('/bucketlists/1/items/1', headers=token, data=self.item)
         self.assertEqual(res.status_code, 200)
-        results = self.client().get('/bucketlists/1/items', headers=token, data=self.item)
+        results = self.client().get('/bucketlists/1/items/1', headers=token, data=self.item)
         self.assertIn('test editing', str(results.data))
 
         # Test API can delete an existing bucketlist. (DELETE request)
         # Test search q  for non existing data
         res = self.client().get('/bucketlists/1/items?q=item5', headers=token, data=self.item)
-        self.assertIn('Items not found in the list', str(res.data))
+        self.assertIn('There are no items added yet.', str(res.data))
 
         # Test search limit
         res = self.client().get('/bucketlists/1/items?limit=1', headers=token, data=self.item)
+        print(res.data)
         self.assertEqual(len(json.loads(res.data.decode())['items']), 1)
 
         # Test search limit with no numerical

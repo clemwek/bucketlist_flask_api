@@ -69,11 +69,10 @@ class BucketlistTestCase(unittest.TestCase):
 
         # Test search q  for non existing data
         res = self.client().get('/bucketlists?q=bucket5', headers=token, data=self.bucketlist)
-        self.assertIn('Bucket not found in the list', str(res.data))
+        self.assertIn('There are no bucketlists added yet.', str(res.data))
 
         # Test search limit
         res = self.client().get('/bucketlists?limiit=1', headers=token, data=self.bucketlist)
-        print(res.data, 'This is the seae=rch limit')
         self.assertEqual(len(json.loads(res.data.decode())['bucketlist']), 2)
 
         # Test search limit with no numerical
