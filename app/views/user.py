@@ -171,10 +171,4 @@ def reset_password():
 
     found_user.hash_password(new_password)
     found_user.save()
-    response = jsonify({
-        "id": found_user.id,
-        "username": found_user.username,
-        "email": found_user.email
-    })
-    response.status_code = 200
-    return response
+    return found_user.serialize('Password change a success.', 200)
