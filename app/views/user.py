@@ -2,8 +2,9 @@
 This has all the auth code
 """
 
-from app.common import email_is_valid
 from flask import Blueprint, request, jsonify
+
+from app.common import email_is_valid
 from app.models.models import User
 
 user_blueprint = Blueprint('auth', __name__)
@@ -11,7 +12,33 @@ user_blueprint = Blueprint('auth', __name__)
 
 @user_blueprint.route('/register', methods=['POST'])
 def register():
-    """ Register a new user """
+    """ Register a new user 
+    ---
+    tags:
+      - "auth"
+    parameters:
+      - in: "body"
+        name: "data"
+        description: "Username and password submitted"
+        required: true
+        schema:
+          type: "object"
+          required:
+          - "username"
+          - "password"
+          properties:
+            username:
+              type: "string"
+            password:
+              type: "string"
+    responses:
+        406:
+          description: "Some data is missing!"
+        201:
+          description: " Success"
+        409:
+          description: " Username already used try anotherone."
+    """
     username = str(request.data.get('username', ''))
     email = str(request.data.get('email', ''))
     password = str(request.data.get('password', ''))
@@ -53,7 +80,31 @@ def register():
 
 @user_blueprint.route('/login', methods=['POST'])
 def login():
-    """ Login a user """
+    """ Login in old users 
+    ---
+    tags:
+      - "auth"
+    parameters:
+      - in: "body"
+        name: "data"
+        description: "Username and password submitted"
+        required: true
+        schema:
+          type: "object"
+          required:
+          - "username"
+          - "password"
+          properties:
+            username:
+              type: "string"
+            password:
+              type: "string"
+    responses:
+        401:
+          description: " Invalid credentials"
+        200:
+          description: " Success"
+    """
     username = str(request.data.get('username', ''))
     password = str(request.data.get('password', ''))
 
@@ -86,7 +137,34 @@ def logout():
 
 @user_blueprint.route('/reset-password', methods=['POST'])
 def reset_password():
-    """ Resets a users password """
+    """ Enable users to reset passwords
+    ---
+    tags:
+      - "auth"
+    parameters:
+      - in: "body"
+        name: "data"
+        description: "Username and password submitted"
+        required: true
+        schema:
+          type: "object"
+          required:
+          - "username"
+          - "old_password"
+          - "new_password"
+          properties:
+            username:
+              type: "string"
+            old_password:
+              type: "string"
+            new_password:
+              type: "string"
+    responses:
+        400:
+          description: " Invalid credentials"
+        200:
+          description: " Success"
+    """
     username = request.data.get('username')
     new_password = request.data.get('password')
     found_user = User.query.filter_by(username=username).first()
