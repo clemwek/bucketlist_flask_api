@@ -107,7 +107,7 @@ class BucketlistTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         # Test to see if it exists, should return a 404
         result = self.client().get('/bucketlists/1', headers=token, data=self.bucketlist)
-        self.assertEqual(result.status_code, 404)
+        self.assertEqual(result.status_code, 403)
 
     def tearDown(self):
         """teardown all initialized variables."""
