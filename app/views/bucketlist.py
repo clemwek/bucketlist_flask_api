@@ -44,19 +44,14 @@ def bucketlist(current_user):
 
     # Test for missing data
     if not name:
-        res = jsonify({'message': 'Some data is missing!'})
+        res = jsonify({'error': 'Some data is missing!'})
         res.status_code = 403
         return res
 
     user_id = current_user.id
     new_bucketlist = Bucketlist(name, user_id)
     new_bucketlist.save()
-    response = jsonify({
-        'id': new_bucketlist.id,
-        'name': new_bucketlist.name
-    })
-    response.status_code = 201
-    return response
+    return new_bucketlist.serialize('Bucket list created.', 201)
 
 
 @bucket_blueprint.route('/bucketlists', methods=['GET'])
@@ -85,7 +80,7 @@ def get_bucketlist(current_user):
     try:
         limit = int(request.args.get('limit', default=10))
     except ValueError:
-        res = jsonify({'message': 'Please pass a numeral.'})
+        res = jsonify({'error': 'Please pass a numeral.'})
         res.status_code = 406
         return res
 
@@ -97,7 +92,7 @@ def get_bucketlist(current_user):
             page, limit, False)
 
     if not found_bucketlist.items:
-        res = jsonify({'message': 'There are no bucketlists added yet.'})
+        res = jsonify({'error': 'There are no bucketlists added yet.'})
         res.status_code = 403
         return res
 
@@ -154,11 +149,11 @@ def delete_bucketlist(current_user, id):
                   description: "bucketlist do not exist"
            """
     # retrieve a buckelist using it's ID
-    found_bucketlist = Bucketlist.query.filter_by(user_id=current_user.id, id=id).first()
+    found_bucketlist = Bucketlist.get_by_id(current_user.id, id)
     if not found_bucketlist:
         # Raise an HTTPException with a 404 not found status code
         return {
-            "message": "bucketlist {} not found".format(found_bucketlist.name)
+            "error": "bucketlist {} not found".format(found_bucketlist.name)
         }, 403
 
     if request.method == 'DELETE':
@@ -195,13 +190,13 @@ def get_single_bucketlist(current_user, id):
                   description: "bucketlist do not exist"
            """
     # retrieve a buckelist using it's ID
-    found_bucketlist = Bucketlist.query.filter_by(user_id=current_user.id, id=id).first()
+    found_bucketlist = Bucketlist.get_by_id(current_user.id, id)
     if not found_bucketlist:
         # Raise an HTTPException with a 403 not found status code
         return {
             "message": "bucketlist not found"
         }, 403
-    bucket_items = Item.query.filter_by(bucket_id=id).all()
+    bucket_items = Item.get_all(bucket_id=id)
     bucket_item_list = [item.name for item in bucket_items]
 
     # GET
@@ -248,20 +243,15 @@ def update_bucketlist(current_user, id):
                   description: "Update Doesn't exist"
            """
     # retrieve a buckelist using it's ID
-    found_bucketlist = Bucketlist.query.filter_by(user_id=current_user.id, id=id).first()
+    found_bucketlist = Bucketlist.get_by_id(current_user.id, id).first()
     if not found_bucketlist:
         # Raise an HTTPException with a 404 not found status code
         return {
-            "message": "bucketlist {} not found".format(found_bucketlist.name)
+            "message": "bucketlist not found"
         }, 403
 
     # PUT
     name = request.data.get('name')
     found_bucketlist.name = name
     found_bucketlist.save()
-    response = jsonify({
-        'id': found_bucketlist.id,
-        'name': found_bucketlist.name
-    })
-    response.status_code = 200
-    return response
+    return found_bucketlist.serialize('Bucketlist updated', 200)
