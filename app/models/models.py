@@ -86,7 +86,7 @@ class Bucketlist(db.Model):
     @staticmethod
     def get_by_id(user_id, bucket_id):
         """Gets buckelist for an id"""
-        return Bucketlist.query.filter_by(user_id=user_id, id=bucket_id).all()
+        return Bucketlist.query.filter_by(user_id=user_id, id=bucket_id).first()
 
     def delete(self):
         """Deletes a buckelist from the database"""
@@ -97,9 +97,8 @@ class Bucketlist(db.Model):
         """This returns a json with status_code and message"""
         return jsonify({
             'message': message,
-            'name': self.name,
-            'date': self.date,
-            'description': self.description
+            'id': self.id,
+            'name': self.name
         }), status_code
 
     def __repr__(self):

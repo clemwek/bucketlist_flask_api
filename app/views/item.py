@@ -207,7 +207,7 @@ def edit_items(current_user, id, item_id):
         return res
 
     # PUT
-    found_item.name = request.data.get('item_name')
+    found_item.name = request.data.get('name')
     found_item.description = request.data.get('description')
     found_item.date = request.data.get('date')
 
