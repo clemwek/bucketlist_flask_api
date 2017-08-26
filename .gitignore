@@ -1,2 +1,3 @@
 apivenv/
 migrations/
+*.pyc

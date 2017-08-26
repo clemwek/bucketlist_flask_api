@@ -42,13 +42,16 @@ class User(db.Model):
         }, os.getenv('SECRET'))
         return jsonify({'token': token.decode('UTF-8')})
 
-    @staticmethod
-    def get_all():
-        return Bucketlist.query.all()
-
     def delete(self):
         db.session.delete(self)
         db.session.commit()
+
+    def serialize(self, message, status_code):
+        return jsonify({
+            'message': message,
+            'username': self.username,
+            'email': self.email
+        }), status_code
 
     def __repr__(self):
         return "<User: {}, with email: {}.>".format(self.username, self.email)
@@ -71,19 +74,36 @@ class Bucketlist(db.Model):
         self.user_id = user_id
 
     def save(self):
+        """Saves to the database"""
         db.session.add(self)
         db.session.commit()
 
     @staticmethod
-    def get_all():
-        return Bucketlist.query.all()
+    def get_all(user_id):
+        """gets all bucketlist for a user"""
+        return Bucketlist.query.filter_by(user_id=user_id).all()
+
+    @staticmethod
+    def get_by_id(user_id, bucket_id):
+        """Gets buckelist for an id"""
+        return Bucketlist.query.filter_by(user_id=user_id, id=bucket_id).first()
 
     def delete(self):
+        """Deletes a buckelist from the database"""
         db.session.delete(self)
         db.session.commit()
 
+    def serialize(self, message, status_code):
+        """This returns a json with status_code and message"""
+        return jsonify({
+            'message': message,
+            'id': self.id,
+            'name': self.name
+        }), status_code
+
     def __repr__(self):
         return "<Bucketlist: {}>".format(self.name)
+
 
 class Item(db.Model):
     """This class represents the bucketlist table."""
@@ -102,16 +122,34 @@ class Item(db.Model):
         self.description = description
         self.date = date
         self.bucket_id = bucket_id
-    
+
     def save(self):
+        """Saves to the database"""
         db.session.add(self)
         db.session.commit()
 
     @staticmethod
-    def get_all():
-        return Bucketlist.query.all()
+    def get_all(bucket_id):
+        """gets all items from the database"""
+        return Item.query.filter_by(bucket_id=bucket_id).all()
+
+    @staticmethod
+    def get_by_id(bucket_id, id):
+        """Gets an item by id"""
+        return Item.query.filter_by(bucket_id=bucket_id, id=id).first()
+
+    def serialize(self, message, status_code):
+        """This returns a json with status_code and message"""
+        return jsonify({
+            'message': message,
+            'id': self.id,
+            'name': self.name,
+            'date': self.date,
+            'descrition': self.description
+        }), status_code
 
     def delete(self):
+        """Delets from the database"""
         db.session.delete(self)
         db.session.commit()
 
