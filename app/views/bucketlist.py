@@ -243,7 +243,7 @@ def update_bucketlist(current_user, id):
                   description: "Update Doesn't exist"
            """
     # retrieve a buckelist using it's ID
-    found_bucketlist = Bucketlist.get_by_id(current_user.id, id).first()
+    found_bucketlist = Bucketlist.get_by_id(current_user.id, id)
     if not found_bucketlist:
         # Raise an HTTPException with a 404 not found status code
         return {

@@ -128,10 +128,8 @@ def login():
 @user_blueprint.route('/logout', methods=['POST'])
 def logout():
     """ Log out a user """
-    token = jwt.encode({
-             'id': 0,
-             'exp': datetime.datetime.utcnow()
-        }, os.getenv('SECRET'))
+    token = jwt.encode({'id': 0, 'exp': datetime.datetime.utcnow()},
+                       os.getenv('SECRET'))
     return jsonify({'token': token.decode('UTF-8')})
 
 
