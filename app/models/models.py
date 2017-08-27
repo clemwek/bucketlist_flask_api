@@ -40,7 +40,7 @@ class User(db.Model):
             'id': self.id,
             'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=30)
         }, os.getenv('SECRET'))
-        return jsonify({'token': token.decode('UTF-8')})
+        return token.decode('UTF-8')
 
     def delete(self):
         db.session.delete(self)
@@ -48,6 +48,7 @@ class User(db.Model):
 
     def serialize(self, message, status_code):
         return jsonify({
+            'token': self.gen_token(),
             'message': message,
             'username': self.username,
             'email': self.email

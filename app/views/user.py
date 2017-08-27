@@ -116,9 +116,7 @@ def login():
         return res
 
     if found_user.check_hashed_password(password, found_user.password_hash):
-        res = found_user.gen_token()
-        res.status_code = 202
-        return res
+        return found_user.serialize('you are logged in', 202)
     else:
         res = jsonify({'error': 'could not veryfy: wrong password'})
         res.status_code = 401
