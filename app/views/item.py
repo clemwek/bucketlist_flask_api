@@ -60,10 +60,15 @@ def add_items(current_user, id):
         res.status_code = 200
         return res
 
-    item_name = request.data.get('name')
-    item_description = request.data.get('description')
+    item_name = request.data.get('name').strip(' ')
+    item_description = request.data.get('description').strip(' ')
     item_date = request.data.get('date')
     item_bucket_id = id
+
+    if Item.query.filter_by(bucket_id=id, name=item_name):
+        res = jsonify({'error': 'Name is already used!'})
+        res.status_code = 406
+        return res
 
     if not item_name or not item_description or not item_date:
         res = jsonify({'error': 'Some data is missing!'})
@@ -206,8 +211,14 @@ def edit_items(current_user, id, item_id):
         res.status_code = 403
         return res
 
+    if Item.query.filter_by(bucket_id=id, name=request.data.get('name').strip(' ')):
+        res = jsonify({'error': 'Name is already used!'})
+        res.status_code = 406
+        return res
+
+
     # PUT
-    found_item.name = request.data.get('name')
+    found_item.name = request.data.get('name').strip(' ')
     found_item.description = request.data.get('description')
     found_item.date = request.data.get('date')
 

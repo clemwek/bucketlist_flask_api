@@ -41,8 +41,8 @@ def register():
         409:
           description: " Username already used try anotherone."
     """
-    username = str(request.data.get('username', ''))
-    email = str(request.data.get('email', ''))
+    username = str(request.data.get('username', '')).strip(' ')
+    email = str(request.data.get('email', '')).strip(' ')
     password = str(request.data.get('password', ''))
 
     if not email or not username or not password:

@@ -40,12 +40,17 @@ def bucketlist(current_user):
         403:
           description: "Some data is missing!"
     """
-    name = request.data.get('name')
+    name = request.data.get('name').strip(' ')
 
     # Test for missing data
     if not name:
         res = jsonify({'error': 'Some data is missing!'})
         res.status_code = 403
+        return res
+
+    if Bucketlist.query.filter_by(user_id=id, name=name):
+        res = jsonify({'error': 'Name is already used!'})
+        res.status_code = 406
         return res
 
     user_id = current_user.id
@@ -251,7 +256,13 @@ def update_bucketlist(current_user, id):
         }, 403
 
     # PUT
-    name = request.data.get('name')
+    name = request.data.get('name').strip(' ')
+
+    if Bucketlist.query.filter_by(user_id=id, name=name):
+        res = jsonify({'error': 'Name is already used!'})
+        res.status_code = 406
+        return res
+
     found_bucketlist.name = name
     found_bucketlist.save()
     return found_bucketlist.serialize('Bucketlist updated', 200)
