@@ -65,7 +65,7 @@ def add_items(current_user, id):
     item_date = request.data.get('date')
     item_bucket_id = id
 
-    if Item.query.filter_by(bucket_id=id, name=item_name):
+    if Item.query.filter_by(bucket_id=id, name=item_name).first():
         res = jsonify({'error': 'Name is already used!'})
         res.status_code = 406
         return res
@@ -211,7 +211,7 @@ def edit_items(current_user, id, item_id):
         res.status_code = 403
         return res
 
-    if Item.query.filter_by(bucket_id=id, name=request.data.get('name').strip(' ')):
+    if Item.query.filter_by(bucket_id=id, name=request.data.get('name').strip(' ')).first():
         res = jsonify({'error': 'Name is already used!'})
         res.status_code = 406
         return res
