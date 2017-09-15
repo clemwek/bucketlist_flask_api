@@ -56,8 +56,8 @@ def add_items(current_user, id):
                       description: "Some data is missing!"
                """
     if not Bucketlist.get_by_id(current_user.id, id):
-        res = jsonify({'error': 'Bucketlist not found'})
-        res.status_code = 403
+        res = jsonify({'items': []})
+        res.status_code = 200
         return res
 
     item_name = request.data.get('name')
