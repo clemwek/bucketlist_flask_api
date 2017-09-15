@@ -92,8 +92,8 @@ def get_bucketlist(current_user):
             page, limit, False)
 
     if not found_bucketlist.items:
-        res = jsonify({'error': 'There are no bucketlists added yet.'})
-        res.status_code = 403
+        res = jsonify({'bucketlist': []})
+        res.status_code = 200
         return res
 
     bucketlist_dict = {"bucketlist": []}
