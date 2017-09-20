@@ -33,7 +33,7 @@ class BucketlistTestCase(unittest.TestCase):
         # Test getting empty bucketlist from db
         res = self.client().get('/bucketlists', headers=self.valid_token())
         self.assertEqual(res.status_code, 200)
-        self.assertIn(len(json.loads(res.data.decode())['bucketlist']), 0)
+        self.assertEqual(len(json.loads(res.data.decode())['bucketlist']), 0)
 
     def test_bucketlist_creation(self):
         # Test with valid token
