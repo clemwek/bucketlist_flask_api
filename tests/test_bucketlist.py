@@ -32,7 +32,7 @@ class BucketlistTestCase(unittest.TestCase):
     def test_get_empty_bucketlist_with_valid_token(self):
         # Test getting empty bucketlist from db
         res = self.client().get('/bucketlists', headers=self.valid_token())
-        self.assertEqual(res.status_code, 403)
+        self.assertEqual(res.status_code, 200)
         self.assertIn('There are no bucketlists added yet.', str(res.data))
 
     def test_bucketlist_creation(self):
@@ -68,7 +68,7 @@ class BucketlistTestCase(unittest.TestCase):
         # Test search q  for non existing data
         res = self.client().get(
             '/bucketlists?q=bucket5', headers=self.valid_token(), data=self.bucketlist)
-        self.assertIn('There are no bucketlists added yet.', str(res.data))
+        self.assertEqual(len(json.loads(res.data.decode())['bucketlist']), 0)
 
     def test_getting_buckets_with_limit(self):
         # Test search limit
