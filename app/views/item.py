@@ -211,7 +211,9 @@ def edit_items(current_user, id, item_id):
         res.status_code = 403
         return res
 
-    if Item.query.filter_by(bucket_id=id, name=request.data.get('name').strip(' ')).first():
+    used_item_name = Item.query.filter_by(
+        bucket_id=id, name=request.data.get('name').strip(' ')).first()
+    if used_item_name and found_item.name != request.data.get('name').strip(' '):
         res = jsonify({'error': 'Name is already used!'})
         res.status_code = 406
         return res
