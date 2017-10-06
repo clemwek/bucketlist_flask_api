@@ -22,13 +22,13 @@ def token_required(f):
             token = request.headers['Authorization']
 
         if not token:
-            return jsonify({'message': 'token is missing!'}), 401
+            return jsonify({'error': 'token is missing!'}), 401
 
         try:
             id = jwt.decode(token, os.getenv('SECRET'))['id']
             current_user = User.query.filter_by(id=id).first()
         except:
-            return jsonify({'message': 'Token is invalid!'}), 401
+            return jsonify({'error': 'Token is invalid!'}), 401
 
         return f(current_user, *args, **kwargs)
 

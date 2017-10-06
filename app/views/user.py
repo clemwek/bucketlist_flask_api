@@ -164,7 +164,12 @@ def reset_password():
     username = request.data.get('username')
     new_password = request.data.get('password')
     found_user = User.query.filter_by(username=username).first()
+  
+    if found_user:
+        found_user.hash_password(new_password)
+        found_user.save()
+        return found_user.serialize('Password change a success.', 200)
 
-    found_user.hash_password(new_password)
-    found_user.save()
-    return found_user.serialize('Password change a success.', 200)
+    res = jsonify({'error': 'Username does not exist.'})
+    res.status_code = 403
+    return res

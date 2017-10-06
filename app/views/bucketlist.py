@@ -56,7 +56,13 @@ def bucketlist(current_user):
 
     new_bucketlist = Bucketlist(name, user_id)
     new_bucketlist.save()
-    return new_bucketlist.serialize('Bucket list created.', 201)
+    resp = jsonify({
+            "id": new_bucketlist.id,
+            "name": new_bucketlist.name,
+            "items": []
+        })
+    resp.status_code = 200
+    return resp
 
 
 @bucket_blueprint.route('/bucketlists', methods=['GET'])
@@ -115,9 +121,21 @@ def get_bucketlist(current_user):
         previous_page = ''
 
     for bucket in found_bucketlist.items:
+        found_items = Item.query.filter_by(bucket_id=bucket.id)
+        items = []
+        for item in found_items:
+            item_obj = {
+                "id": item.id,
+                "name": item.name,
+                "description": item.description,
+                "date": item.date,
+                "bucket_id": item.bucket_id
+            }
+            items.append(item_obj)
         dict_obj = {
             "id": bucket.id,
-            "name": bucket.name
+            "name": bucket.name,
+            "items": items
         }
         bucketlist_dict["bucketlist"].append(dict_obj)
     bucketlist_dict['next_page'] = next_page
@@ -164,7 +182,8 @@ def delete_bucketlist(current_user, id):
     if request.method == 'DELETE':
         found_bucketlist.delete()
         return {
-            "message": "bucketlist {} deleted successfully".format(found_bucketlist.name)
+            "message": "bucketlist {} deleted successfully".format(found_bucketlist.name),
+            "id": found_bucketlist.id
         }, 200
 
 

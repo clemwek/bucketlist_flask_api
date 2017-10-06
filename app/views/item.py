@@ -135,8 +135,8 @@ def get_items(current_user, id):
         found_items = Item.query.filter_by(bucket_id=id).paginate(page, limit, False)
 
     if not found_items.items:
-        res = jsonify({'error': 'There are no items added yet.'})
-        res.status_code = 403
+        res = jsonify({'items': []})
+        res.status_code = 200
         return res
 
     items_dict = {"items": []}
@@ -274,5 +274,7 @@ def delete_items(current_user, id, item_id):
     # DELETE
     found_item.delete()
     return jsonify({
-        'message': 'Item was deleted successful'
+        'message': 'Item was deleted successful',
+        'id': found_item.id,
+        'bucket_id': id
     })

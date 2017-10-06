@@ -146,7 +146,8 @@ class Item(db.Model):
             'id': self.id,
             'name': self.name,
             'date': self.date,
-            'descrition': self.description
+            'descrition': self.description,
+            'bucket_id': self.bucket_id
         }), status_code
 
     def delete(self):
