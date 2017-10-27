@@ -56,14 +56,19 @@ def add_items(current_user, id):
                       description: "Some data is missing!"
                """
     if not Bucketlist.get_by_id(current_user.id, id):
-        res = jsonify({'error': 'Bucketlist not found'})
-        res.status_code = 403
+        res = jsonify({'items': []})
+        res.status_code = 200
         return res
 
-    item_name = request.data.get('name')
-    item_description = request.data.get('description')
+    item_name = request.data.get('name').strip(' ')
+    item_description = request.data.get('description').strip(' ')
     item_date = request.data.get('date')
     item_bucket_id = id
+
+    if Item.query.filter_by(bucket_id=id, name=item_name).first():
+        res = jsonify({'error': 'Name is already used!'})
+        res.status_code = 406
+        return res
 
     if not item_name or not item_description or not item_date:
         res = jsonify({'error': 'Some data is missing!'})
@@ -130,8 +135,8 @@ def get_items(current_user, id):
         found_items = Item.query.filter_by(bucket_id=id).paginate(page, limit, False)
 
     if not found_items.items:
-        res = jsonify({'error': 'There are no items added yet.'})
-        res.status_code = 403
+        res = jsonify({'items': []})
+        res.status_code = 200
         return res
 
     items_dict = {"items": []}
@@ -206,8 +211,16 @@ def edit_items(current_user, id, item_id):
         res.status_code = 403
         return res
 
+    used_item_name = Item.query.filter_by(
+        bucket_id=id, name=request.data.get('name').strip(' ')).first()
+    if used_item_name and found_item.name != request.data.get('name').strip(' '):
+        res = jsonify({'error': 'Name is already used!'})
+        res.status_code = 406
+        return res
+
+
     # PUT
-    found_item.name = request.data.get('name')
+    found_item.name = request.data.get('name').strip(' ')
     found_item.description = request.data.get('description')
     found_item.date = request.data.get('date')
 
@@ -261,5 +274,7 @@ def delete_items(current_user, id, item_id):
     # DELETE
     found_item.delete()
     return jsonify({
-        'message': 'Item was deleted successful'
+        'message': 'Item was deleted successful',
+        'id': found_item.id,
+        'bucket_id': id
     })

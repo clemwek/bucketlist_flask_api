@@ -41,8 +41,8 @@ def register():
         409:
           description: " Username already used try anotherone."
     """
-    username = str(request.data.get('username', ''))
-    email = str(request.data.get('email', ''))
+    username = str(request.data.get('username', '')).strip(' ')
+    email = str(request.data.get('email', '')).strip(' ')
     password = str(request.data.get('password', ''))
 
     if not email or not username or not password:
@@ -116,9 +116,7 @@ def login():
         return res
 
     if found_user.check_hashed_password(password, found_user.password_hash):
-        res = found_user.gen_token()
-        res.status_code = 202
-        return res
+        return found_user.serialize('you are logged in', 202)
     else:
         res = jsonify({'error': 'could not veryfy: wrong password'})
         res.status_code = 401
@@ -166,7 +164,12 @@ def reset_password():
     username = request.data.get('username')
     new_password = request.data.get('password')
     found_user = User.query.filter_by(username=username).first()
+  
+    if found_user:
+        found_user.hash_password(new_password)
+        found_user.save()
+        return found_user.serialize('Password change a success.', 200)
 
-    found_user.hash_password(new_password)
-    found_user.save()
-    return found_user.serialize('Password change a success.', 200)
+    res = jsonify({'error': 'Username does not exist.'})
+    res.status_code = 403
+    return res

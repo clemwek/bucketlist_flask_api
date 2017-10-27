@@ -40,7 +40,8 @@ def bucketlist(current_user):
         403:
           description: "Some data is missing!"
     """
-    name = request.data.get('name')
+    user_id = current_user.id
+    name = request.data.get('name').strip(' ')
 
     # Test for missing data
     if not name:
@@ -48,10 +49,20 @@ def bucketlist(current_user):
         res.status_code = 403
         return res
 
-    user_id = current_user.id
+    if Bucketlist.query.filter_by(user_id=user_id, name=name).first():
+        res = jsonify({'error': 'Name is already used!'})
+        res.status_code = 406
+        return res
+
     new_bucketlist = Bucketlist(name, user_id)
     new_bucketlist.save()
-    return new_bucketlist.serialize('Bucket list created.', 201)
+    resp = jsonify({
+            "id": new_bucketlist.id,
+            "name": new_bucketlist.name,
+            "items": []
+        })
+    resp.status_code = 200
+    return resp
 
 
 @bucket_blueprint.route('/bucketlists', methods=['GET'])
@@ -92,8 +103,8 @@ def get_bucketlist(current_user):
             page, limit, False)
 
     if not found_bucketlist.items:
-        res = jsonify({'error': 'There are no bucketlists added yet.'})
-        res.status_code = 403
+        res = jsonify({'bucketlist': []})
+        res.status_code = 200
         return res
 
     bucketlist_dict = {"bucketlist": []}
@@ -110,9 +121,21 @@ def get_bucketlist(current_user):
         previous_page = ''
 
     for bucket in found_bucketlist.items:
+        found_items = Item.query.filter_by(bucket_id=bucket.id)
+        items = []
+        for item in found_items:
+            item_obj = {
+                "id": item.id,
+                "name": item.name,
+                "description": item.description,
+                "date": item.date,
+                "bucket_id": item.bucket_id
+            }
+            items.append(item_obj)
         dict_obj = {
             "id": bucket.id,
-            "name": bucket.name
+            "name": bucket.name,
+            "items": items
         }
         bucketlist_dict["bucketlist"].append(dict_obj)
     bucketlist_dict['next_page'] = next_page
@@ -159,7 +182,8 @@ def delete_bucketlist(current_user, id):
     if request.method == 'DELETE':
         found_bucketlist.delete()
         return {
-            "message": "bucketlist {} deleted successfully".format(found_bucketlist.name)
+            "message": "bucketlist {} deleted successfully".format(found_bucketlist.name),
+            "id": found_bucketlist.id
         }, 200
 
 
@@ -251,7 +275,13 @@ def update_bucketlist(current_user, id):
         }, 403
 
     # PUT
-    name = request.data.get('name')
+    name = request.data.get('name').strip(' ')
+
+    if Bucketlist.query.filter_by(user_id=current_user.id, name=name).first():
+        res = jsonify({'error': 'Name is already used!'})
+        res.status_code = 406
+        return res
+
     found_bucketlist.name = name
     found_bucketlist.save()
     return found_bucketlist.serialize('Bucketlist updated', 200)
